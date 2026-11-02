@@ -282,7 +282,8 @@ function pump(now) {
 let last = performance.now();
 function frame(now) {
   last = now;
-  pump(now); drawScene(now); placeBubbles();
+  pump(now);
+  if (!document.body.classList.contains("v-app")) { drawScene(now); placeBubbles(); }
   requestAnimationFrame(frame);
 }
 
@@ -425,11 +426,12 @@ function idleCursor() {
 
 // ---------- poll
 async function poll() {
-  if (!DP) { $("#err").hidden = false; $("#err").textContent = "No data link yet. Open the dashboard once with the private link from Telegram (it ends in #d=…)."; return; }
+  if (!DP) { window.dispatchEvent(new CustomEvent("deskerr", { detail: "nolink" })); $("#err").hidden = false; $("#err").textContent = "No data link yet. Open the dashboard once with the private link from Telegram (it ends in #d=…)."; return; }
   try {
     const d = await Feed.get(DP, "dash.json"); D.lastPoll = Date.now();
     if (D.data && d.updated_at !== D.data.updated_at) uplinkPulse();
     D.data = d; D.lastOk = Date.now(); $("#err").hidden = true;
+    window.dispatchEvent(new CustomEvent("deskdata", { detail: d }));
     const badge = $("#mode"); badge.textContent = d.mode + (d.exec ? " · " + d.exec.toUpperCase() : ""); badge.className = "badge" + (d.mode === "LIVE" ? " live" : "");
     cards(d); balance(d); coin(d); overlays(d);
     const fresh = (d.events || []).filter(e => !D.seen.has(e.id));
@@ -454,6 +456,7 @@ async function poll() {
     $("#foot").textContent = `bot wallet ${w.address || "n/a"} · updated ${hms(d.updated_at)} ET · ${Feed.remote ? "public feed every 15s" : "feed every 3s"}`;
   } catch (e) {
     $("#err").hidden = false; $("#err").textContent = "Can't reach the desk feed (" + e.message + "). Retrying.";
+    window.dispatchEvent(new CustomEvent("deskerr", { detail: e.message }));
   }
 }
 gInit();

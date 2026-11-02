@@ -5,13 +5,55 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="theme-color" content="#050505">
+<meta name="theme-color" content="#000000">
 <meta name="referrer" content="no-referrer">
 <title>HIGHLIKEMYPJ DESK · live</title>
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <link rel="stylesheet" href="dash.css">
+<link rel="stylesheet" href="m.css">
 </head>
-<body>
+<body class="v-app">
+<main id="app" class="mapp">
+  <header class="mtop">
+    <div class="mbrand"><span class="mdot" id="mfeed"></span>Desk <span class="mmode" id="mmode">…</span></div>
+    <div class="mclock" id="mclock">--:-- ET</div>
+  </header>
+  <div class="merr" id="merr" hidden></div>
+  <div class="mgrid">
+    <div class="mcol">
+      <section class="mhero">
+        <div class="mlabel" id="mballabel">Paper equity</div>
+        <div class="mbal" id="mbal">$--</div>
+        <div class="mpnl"><span id="mpnl">&nbsp;</span><span class="mmult" id="mmult" hidden></span></div>
+        <div class="mchart"><canvas id="mcv"></canvas><div class="mmarks" id="mmarks"></div><div class="mempty" id="mchartempty" hidden>No equity history yet</div></div>
+        <div class="mtf" id="mtf"></div>
+      </section>
+      <section class="msec">
+        <div class="mhead"><span>Agents</span><span class="mgreen" id="mrunning"></span></div>
+        <div class="mcar" id="mcar"></div>
+      </section>
+    </div>
+    <div class="mcol">
+      <section class="msec">
+        <div class="mhead"><span>Live coins</span><span class="mgray" id="mcoinsn"></span></div>
+        <div class="mcoins" id="mcoins"></div>
+      </section>
+      <section class="msec">
+        <div class="mhead"><span>Activity</span><span class="mgray" id="mfeedn"></span></div>
+        <div class="mlist" id="mlist"></div>
+      </section>
+      <div class="mfoot" id="mfoot"></div>
+    </div>
+  </div>
+</main>
+<section class="mcoin" id="mcoin" aria-hidden="true">
+  <div class="mcbar"><button class="mback" id="mback">‹ Home</button><a class="mgray mlink" id="mclink" target="_blank" rel="noopener">DexScreener ↗</a></div>
+  <div class="mcbody" id="mcbody"></div>
+</section>
+<div class="msheet" id="msheet"><div class="mgrab"></div><div id="msheetbody"></div></div>
+<canvas id="mconfetti" class="mconfetti"></canvas>
+<nav class="mtabs"><button data-v="app" class="on">Home</button><button data-v="floor">Floor</button></nav>
+<div id="floor">
 <header class="top">
   <div class="brand"><span class="logo">◆</span> HIGHLIKEMYPJ DESK <span id="mode" class="badge">…</span></div>
   <div class="meta"><span id="feed" class="feed">connecting</span><a class="home" href="index.html">APP ›</a><span id="clock" class="clock">--:--:-- ET</span></div>
@@ -45,7 +87,10 @@
   </div>
 </section>
 <footer class="foot dim" id="foot"></footer>
+</div>
 <script src="feed.js"></script>
 <script src="dash.js"></script>
+<script src="vendor/lightweight-charts.js"></script>
+<script src="m.js"></script>
 </body>
 </html>
