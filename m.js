@@ -192,7 +192,7 @@
     const cp = a.copy;
     if (cp) {
       const st = !cp.on ? "off" : cp.active ? "watching" : "off in LIVE";
-      const wl = (cp.wallets || []).slice(0, 4).map(w => `<div class="pool"><b>${h(w.handle ? "@" + w.handle : w.w)}</b><span class="mgray">${h(w.w)}</span><span>${w.wr != null ? Math.round(w.wr * 100) + "% win" : "lb"}</span><span class="t cpy">${Math.round(w.score || 0)}</span></div>`).join("");
+      const wl = (cp.wallets || []).slice(0, 4).map(w => `<div class="pool"><b>${h(w.handle ? "@" + w.handle : w.w)}</b><span class="mgray">${w.handle ? h(w.w) : "on-chain"}</span><span>${w.wr != null ? Math.round(w.wr * 100) + "% win" : "FOMO lb"}</span><span class="t cpy">${Math.round(w.score || 0)}</span></div>`).join("");
       const ls = cp.last ? `<div class="sm">last buy ${h(cp.last.coin)} by ${h(cp.last.w)} · ${age(cp.last.ts)} ago${cp.last.acted === "signal" ? ' · <span class="mgreen">copied</span>' : ""}</div>` : `<div class="sm">no tracked buys yet</div>`;
       card("copy", "c" + JSON.stringify(cp),
         `<h4>${ICON.copy}Copy</h4><div class="big" style="display:flex;align-items:center;gap:8px"><span class="blink ${cp.active ? "" : "off"}" style="${cp.active ? "background:#2EE6C9" : ""}"></span>${st}</div>` +
