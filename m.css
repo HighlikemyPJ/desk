@@ -75,6 +75,7 @@ body.v-floor { padding-bottom:70px; }
 .pool b { font-weight:600; color:#fff; overflow:hidden; text-overflow:ellipsis; max-width:90px; }
 .pool .t { font-size:9.5px; font-weight:700; padding:0 5px; border-radius:5px; align-self:center; line-height:15px; }
 .t.mig { background:rgba(61,139,255,.2); color:#7fb4ff; } .t.mom { background:rgba(255,159,10,.2); color:#ffb347; }
+.t.cpy { background:rgba(46,230,201,.18); color:#2ee6c9; }
 .ringrow { display:flex; align-items:center; gap:12px; margin-top:4px; }
 .ring { width:64px; height:64px; position:relative; flex:none; }
 .ring svg { width:64px; height:64px; transform:rotate(-90deg); }

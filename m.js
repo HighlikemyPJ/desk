@@ -39,6 +39,7 @@
     analyst: '<svg viewBox="0 0 24 24" fill="none" stroke="#C77DFF" stroke-width="2"><path d="M4 19V5M4 19h16"/><path d="m7 15 4-4 3 3 5-6"/></svg>',
     executor: '<svg viewBox="0 0 24 24" fill="none" stroke="#FFB347" stroke-width="2"><path d="M13 2 4 14h7l-1 8 9-12h-7z"/></svg>',
     risk: '<svg viewBox="0 0 24 24" fill="none" stroke="#FF9F0A" stroke-width="2"><path d="M12 3 2 21h20z"/><path d="M12 10v5M12 18v.01"/></svg>',
+    copy: '<svg viewBox="0 0 24 24" fill="none" stroke="#2EE6C9" stroke-width="2"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V5a1 1 0 0 0-1-1H5a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h3"/></svg>',
   };
   const up = '<svg width="12" height="12" viewBox="0 0 12 12" style="vertical-align:-1px"><path d="M6 1 11 9H1z" fill="currentColor"/></svg>';
   const down = '<svg width="12" height="12" viewBox="0 0 12 12" style="vertical-align:-1px"><path d="M6 11 1 3h10z" fill="currentColor"/></svg>';
@@ -165,10 +166,10 @@
     const a = A.app.agents, d = A.d;
     q("#mrunning").textContent = (A.app.running ?? 0) + " running";
     const sc = a.scanner, pools = sc.pools || [];
-    const prow = p => `<div class="pool"><b>${h(p.coin)}</b><span class="mgray">${age(p.created)}</span><span>${kmoney(p.liq)}</span><span class="t ${p.source === "momentum" ? "mom" : "mig"}">${p.source === "momentum" ? "MOM" : "MIG"}</span>${p.pass ? '<span class="mgreen">✓</span>' : ""}</div>`;
+    const prow = p => `<div class="pool"><b>${h(p.coin)}</b><span class="mgray">${age(p.created)}</span><span>${kmoney(p.liq)}</span><span class="t ${p.source === "momentum" ? "mom" : p.source === "copy" ? "cpy" : "mig"}">${p.source === "momentum" ? "MOM" : p.source === "copy" ? "CPY" : "MIG"}</span>${p.pass ? '<span class="mgreen">✓</span>' : ""}</div>`;
     const list = pools.map(prow).join("");
     card("scanner", "s" + pools.map(p => p.mint).join() + sc.n,
-      `<h4>${ICON.scanner}Scanner</h4><div class="radar"></div><div class="big">+${sc.n} pools</div><div class="sm">tonight · mig ${sc.mig} / mom ${sc.mom}</div>` +
+      `<h4>${ICON.scanner}Scanner</h4><div class="radar"></div><div class="big">+${sc.n} pools</div><div class="sm">tonight · mig ${sc.mig} / mom ${sc.mom}${sc.cpy ? ` / copy ${sc.cpy}` : ""}</div>` +
       (pools.length ? `<div class="pools"><div class="roll ${pools.length < 4 ? "still" : ""}">${list}${pools.length >= 4 ? list : ""}</div></div>` : `<div class="empty">waiting for pools</div>`));
     const au = a.auditor;
     card("auditor", "a" + JSON.stringify(au),
@@ -188,6 +189,17 @@
       `<div class="sm">${rk.n} guarding · stop -${rk.stop_pct}%${rk.trailing ? ` · ${rk.trailing} trailing` : ""}</div>` +
       `<div class="sm">${rk.coins.map(c => `${h(c.coin)} <span class="${c.pnl_pct >= 0 ? "mgreen" : "mred"}">${pc(c.pnl_pct)}</span>`).join(" · ") || "no open positions"}</div>` +
       `<div class="pills"><span class="red">stop -${rk.stop_pct}%</span><span class="gr">trail ${rk.trail_pct}%</span></div>`);
+    const cp = a.copy;
+    if (cp) {
+      const st = !cp.on ? "off" : cp.active ? "watching" : "off in LIVE";
+      const wl = (cp.wallets || []).slice(0, 4).map(w => `<div class="pool"><b>${h(w.handle ? "@" + w.handle : w.w)}</b><span class="mgray">${h(w.w)}</span><span>${w.wr != null ? Math.round(w.wr * 100) + "% win" : "lb"}</span><span class="t cpy">${Math.round(w.score || 0)}</span></div>`).join("");
+      const ls = cp.last ? `<div class="sm">last buy ${h(cp.last.coin)} by ${h(cp.last.w)} · ${age(cp.last.ts)} ago${cp.last.acted === "signal" ? ' · <span class="mgreen">copied</span>' : ""}</div>` : `<div class="sm">no tracked buys yet</div>`;
+      card("copy", "c" + JSON.stringify(cp),
+        `<h4>${ICON.copy}Copy</h4><div class="big" style="display:flex;align-items:center;gap:8px"><span class="blink ${cp.active ? "" : "off"}" style="${cp.active ? "background:#2EE6C9" : ""}"></span>${st}</div>` +
+        `<div class="sm">${cp.n} wallets · ${cp.trades} copy trade${cp.trades === 1 ? "" : "s"} tonight · ${cp.open}/${cp.max_open} open</div>` + ls +
+        (wl ? `<div class="pools">${wl}</div>` : `<div class="empty">finding wallets…</div>`) +
+        `<div class="pills"><span class="gr">TP +${cp.tp}%</span><span class="gr">max ${cp.hold}m</span></div>`);
+    }
   }
 
   // ---------- activity feed
