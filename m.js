@@ -174,7 +174,7 @@
     const prow = p => `<div class="pool"><b>${h(p.coin)}</b><span class="mgray">${age(p.created)}</span><span>${kmoney(p.liq)}</span>${BB(p.source)}${p.pass ? '<span class="mgreen">✓</span>' : ""}</div>`;
     const list = pools.map(prow).join("");
     card("scanner", "s" + pools.map(p => p.mint).join() + sc.n,
-      `<h4>${ICON.scanner}Scanner</h4><div class="radar"></div><div class="big">+${sc.n} pools</div><div class="sm">tonight · mig ${sc.mig} / mom ${sc.mom}${sc.blu ? ` / blu ${sc.blu}` : ""}${sc.vol ? ` / vol ${sc.vol}` : ""}${sc.cpy ? ` / copy ${sc.cpy}` : ""}</div>` +
+      `<h4>${ICON.scanner}Scanner</h4><div class="radar"></div><div class="big">+${sc.n} pools</div><div class="sm">tonight · mig ${sc.mig} / mom ${sc.mom}${sc.blu ? ` / blu ${sc.blu}` : ""}${sc.vol ? ` / vol ${sc.vol}` : ""}${sc.snp ? ` / snp ${sc.snp}` : ""}${sc.cpy ? ` / copy ${sc.cpy}` : ""}</div>` +
       (pools.length ? `<div class="pools"><div class="roll ${pools.length < 4 ? "still" : ""}">${list}${pools.length >= 4 ? list : ""}</div></div>` : `<div class="empty">waiting for pools</div>`));
     const au = a.auditor;
     card("auditor", "a" + JSON.stringify(au),
@@ -191,9 +191,9 @@
     const rk = a.risk;
     card("risk", "r" + JSON.stringify(rk),
       `<h4>${ICON.risk}Risk</h4><div class="big" style="display:flex;align-items:center;gap:8px"><span class="blink ${rk.trailing ? "" : rk.n ? "" : "off"}" style="${rk.trailing ? "" : rk.n ? "background:#00E676" : ""}"></span>${rk.trailing ? "trailing" : rk.n ? "guarding" : "idle"}</div>` +
-      `<div class="sm">${rk.n} guarding · stop -${rk.stop_pct}%${rk.trailing ? ` · ${rk.trailing} trailing` : ""}</div>` +
+      `<div class="sm">${rk.n} guarding · ${rk.hard_stop === false ? `signal exits · floor -${rk.stop_pct}%` : `stop -${rk.stop_pct}%`}${rk.trailing ? ` · ${rk.trailing} trailing` : ""}</div>` +
       `<div class="sm">${rk.coins.map(c => `${h(c.coin)} <span class="${c.pnl_pct >= 0 ? "mgreen" : "mred"}">${pc(c.pnl_pct)}</span>`).join(" · ") || "no open positions"}</div>` +
-      `<div class="pills"><span class="red">stop -${rk.stop_pct}%</span><span class="gr">trail ${rk.trail_pct}%</span></div>`);
+      `<div class="pills"><span class="red">${rk.hard_stop === false ? "floor" : "stop"} -${rk.stop_pct}%</span>${rk.signals ? `<span class="gr">signal exits</span>` : ""}<span class="gr">trail ${rk.trail_pct}%</span></div>`);
     const cp = a.copy;
     if (cp) {
       const st = !cp.on ? "off" : cp.active ? "watching" : "off in LIVE";
@@ -330,7 +330,7 @@
     const stopPct = p ? (100 * (p.exit_line / p.entry_price - 1)) : null;
     q("#mccards").innerHTML = p
       ? `<div class="mcardx"><div class="k">Your position ${BB(c.bot || c.source, true)}</div><div class="rows"><div><b>${money(p.size_usd)}</b><span>in</span></div><div><b>${money(p.value_usd)}</b><span>value</span></div><div><b class="${p.pnl_usd >= 0 ? "mgreen" : "mred"}">${money(p.pnl_usd, true)}</b><span>P&amp;L</span></div></div></div>
-         <div class="mcardx"><h5><span class="blink ${p.trail_active ? "" : "off"}"></span>Risk · ${p.trail_active ? "trailing stop" : "hard stop"}</h5><div class="rows"><div><b class="morange">${pxHtml(p.exit_line)}</b><span>exit line</span></div><div><b>${pc(stopPct)}</b><span>vs entry</span></div><div><b>${p.trail_active ? "on" : pxHtml(p.trail_start_price)}</b><span>${p.trail_active ? "trail" : "trail arms at"}</span></div></div></div>`
+         <div class="mcardx"><h5><span class="blink ${p.trail_active ? "" : "off"}"></span>Risk · ${p.trail_active ? "trailing stop" : (p.hard_stop === false ? "floor · signal exits" : "hard stop")}</h5><div class="rows"><div><b class="morange">${pxHtml(p.exit_line)}</b><span>exit line</span></div><div><b>${pc(stopPct)}</b><span>vs entry</span></div><div><b>${p.trail_active ? "on" : pxHtml(p.trail_start_price)}</b><span>${p.trail_active ? "trail" : "trail arms at"}</span></div></div></div>`
       : `<div class="mcardx"><div class="k">Your position</div><div style="margin-top:6px;font-weight:600">Not held</div><div class="mgray" style="font-size:13px">${h({ waiting: "In the waiting room", audited: "Audited", passed: "Passed the scanner", watching: "Being scanned" }[c.status] || "Being watched")} · the desk buys only after Auditor and Analyst pass it.</div></div>`;
     priceLines(c);
     liveTick(c);
