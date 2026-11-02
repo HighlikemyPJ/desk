@@ -215,3 +215,29 @@ html { background:#000; }
 .mrow .t1 .bb { margin-right:2px; }
 .mcc .st .bb { font-size:9px; line-height:14px; padding:0 4px; }
 .mcardx .k .bb { margin-left:6px; }
+
+/* t85: the Boss card + red/white crown badge */
+.b-boss { background:#e0182d; color:#fff; box-shadow:inset 0 0 0 1px rgba(255,255,255,.55); }
+.mbosssec .mhead .bb { font-size:11px; line-height:20px; padding:0 8px; margin-right:6px; }
+.mboss { background:var(--card); border-radius:20px; padding:12px 14px 10px; box-shadow:inset 0 0 0 1px rgba(224,24,45,.35); }
+.bst { font-size:12px; font-weight:700; padding:2px 9px; border-radius:99px; }
+.bst.ok { background:rgba(0,230,118,.16); color:#00E676; }
+.bst.lim { background:#e0182d; color:#fff; }
+.bst.off { background:rgba(142,142,147,.22); color:#b8b8bd; }
+.bpnl { display:flex; justify-content:space-between; gap:10px; }
+.bpnl small { display:block; font-size:11px; color:var(--gray); }
+.bpnl b { display:block; font-size:22px; font-weight:800; font-variant-numeric:tabular-nums; margin:2px 0; }
+.bpnl .blim { text-align:right; }
+.bbar { height:6px; background:#2a2a2c; border-radius:99px; overflow:hidden; margin:8px 0 4px; }
+.bbar i { display:block; height:100%; background:#FF9F0A; border-radius:99px; }
+.bbar i.warn { background:#FF4D5E; } .bbar i.full { background:#e0182d; }
+.bsub { font-size:10.5px; color:var(--gray); font-weight:600; text-transform:uppercase; letter-spacing:.3px; padding:10px 0 4px; border-top:1px solid #262626; margin-top:8px; }
+.bsub .mgray { text-transform:none; font-weight:500; letter-spacing:0; }
+.bbench { display:grid; grid-template-columns:auto 1fr auto; gap:8px; align-items:center; padding:5px 0; font-size:13px; }
+.bbench .bb { font-size:11px; line-height:20px; padding:0 8px; }
+.bnone { font-size:12.5px; color:var(--gray); padding:4px 0; }
+.bdec { display:grid; grid-template-columns:76px 1fr auto; gap:8px; align-items:center; padding:6px 0; border-top:1px solid #1f1f21; font-size:12px; }
+.bsub + .bdec { border-top:0; }
+.bdm { min-width:0; } .bdm .t1 { font-weight:600; font-size:13px; } .bdm .t2 { color:var(--gray); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.bact { font-size:11px; font-weight:700; text-align:center; padding:3px 0; border-radius:7px; }
+.bact.ok { background:rgba(0,230,118,.14); color:#00E676; } .bact.no { background:rgba(255,77,94,.16); color:#FF4D5E; } .bact.rs { background:rgba(255,159,10,.16); color:#FF9F0A; }

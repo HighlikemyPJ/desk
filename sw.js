@@ -1,6 +1,6 @@
 // Offline launch only. App files: network first (bypassing the HTTP cache), cached copy only when offline.
 // Desk data is never cached: d/ (local), *.bin / *.json feeds, and every other origin (GitHub raw, GeckoTerminal) pass straight through.
-const C = "desk-v8";
+const C = "desk-v9";
 const SHELL = ["./", "index.html", "app.css", "app.js", "feed.js", "chart.js", "manifest.json",
   "dash.html", "dash.css", "dash.js", "m.css", "m.js", "vendor/lightweight-charts.js", "dash.webmanifest",
   "icons/dash-180.png", "icons/dash-192.png", "icons/dash-512.png"];

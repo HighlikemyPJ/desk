@@ -207,6 +207,33 @@
     }
   }
 
+  // ---------- Boss (t85): final say on every buy
+  const BOSSB = `<span class="bb b-boss">♛ Boss</span>`;
+  function boss() {
+    const X = A.app.boss, box = q("#mboss");
+    if (!box) return;
+    if (!X) { box.innerHTML = `<div class="mnone">Boss card appears after the next feed update</div>`; q("#mbossn").innerHTML = ""; return; }
+    const st = X.status === "limit" ? `<span class="bst lim">Daily limit hit</span>` : X.status === "off" ? `<span class="bst off">Off</span>` : `<span class="bst ok">In charge</span>`;
+    q("#mbossn").innerHTML = st;
+    const P = X.pnl, lim = Math.abs(P.limit), used = Math.max(0, Math.min(1, -P.total / lim));
+    const tone = v => Math.abs(v) < 0.005 ? "mgray" : v > 0 ? "mgreen" : "mred";
+    const mins = s => s >= 60 ? Math.ceil(s / 60) + "m" : Math.max(1, Math.round(s)) + "s";
+    const AC = { approve: ["ok", "Approved"], block: ["no", "Blocked"], resize: ["rs", "Resized"] };
+    const bench = X.benched.length
+      ? X.benched.map(b => `<div class="bbench">${BB(b.bot, true)}<span>benched · <b>${mins(b.left_s)}</b> left</span><span class="mred">${money(b.losses, true)}</span></div>`).join("")
+      : `<div class="bnone">No bots benched</div>`;
+    const dec = X.decisions.length
+      ? X.decisions.map(d => { const a = AC[d.action] || ["", d.action]; return `<div class="bdec"><span class="bact ${a[0]}">${a[1]}${d.action === "resize" ? " " + d.size_x + "x" : ""}</span><div class="bdm"><div class="t1">${BB(d.bot)} ${h(d.coin)}</div><div class="t2">${h(d.reason)}</div></div><span class="mgray">${age(d.ts)}</span></div>`; }).join("")
+      : `<div class="bnone">No decisions yet: the Boss reviews each buy after the Analyst</div>`;
+    const T = X.today || {};
+    box.innerHTML = `<div class="bpnl"><div><small>Today's P&amp;L</small><b class="${tone(P.total)}">${money(P.total, true)}</b><small class="mgray">${money(P.realized, true)} realized · ${money(P.unrealized, true)} open</small></div>` +
+      `<div class="blim"><small>Daily limit</small><b class="mred">-$${lim.toFixed(2)}</b><small class="mgray">${Math.round(used * 100)}% used</small></div></div>` +
+      `<div class="bbar"><i style="width:${(used * 100).toFixed(1)}%" class="${used >= 1 ? "full" : used >= 0.6 ? "warn" : ""}"></i></div>` +
+      `<div class="bsub">Bench</div>${bench}` +
+      `<div class="bsub">Last decisions <span class="mgray">· today ${T.approve || 0} approved · ${T.resize || 0} resized · ${T.block || 0} blocked</span></div>${dec}` +
+      `<div class="bnote">Bench after ${X.rules.bench_after} losses for ${X.rules.bench_min}m · losing bot ${X.rules.losing_x}x size · skip &gt;+${X.rules.m5_pump}% in 5m${X.rules.m5_buys ? " or 5m sells &gt; buys" : ""} · day since ${hm(X.since)} ET</div>`;
+  }
+
   // ---------- live P&L by bot (t81)
   function bots() {
     const B = A.app.bots, box = q("#mbots");
@@ -443,7 +470,7 @@
     const d = e.detail; if (!d || !d.app) return;
     A.d = d; A.app = d.app; note();
     const mm = q("#mmode"); mm.textContent = d.mode + (d.exec ? " · " + String(d.exec).toUpperCase() : ""); mm.className = "mmode" + (d.mode === "LIVE" ? " live" : "");
-    eqData(); hero(); bots(); agents(); feed(); coins(); toasts(); celebrate();
+    eqData(); hero(); boss(); bots(); agents(); feed(); coins(); toasts(); celebrate();
     if (A.open) renderCoin(false);
     const w = d.wallet || {};
     q("#mfoot").textContent = `bot wallet ${w.address || "n/a"} · updated ${hm(d.updated_at)} ET · ${Feed.remote ? "public feed · 15s snapshots" : "local feed · 3s"}`;
