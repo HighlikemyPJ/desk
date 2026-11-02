@@ -3,11 +3,8 @@
 const $ = (s, r = document) => r.querySelector(s);
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 const POLL = 3000;
-(function () {
-  const m = location.hash.match(/^#d=([A-Za-z0-9_-]{32,})/);
-  if (m) { localStorage.setItem("dataPath", m[1]); history.replaceState(null, "", location.pathname + location.search); }
-})();
-const DP = localStorage.getItem("dataPath");
+// The key comes from #d=... (kept in the URL so an iOS Home Screen icon saves it); dash.html's head script stores it.
+const DP = window.DESK_KEY || (() => { try { return localStorage.getItem("dataPath"); } catch (e) { return null; } })();
 const RM = matchMedia("(prefers-reduced-motion: reduce)").matches;
 const TZ = "America/New_York";
 const usd = (v, sign) => v == null ? "n/a" : (sign ? (v > 0 ? "+" : v < 0 ? "-" : "") : (v < 0 ? "-" : "")) + "$" + Math.abs(v).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });

@@ -4,11 +4,37 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Desk">
+<meta name="application-name" content="Desk">
 <meta name="theme-color" content="#000000">
+<meta name="format-detection" content="telephone=no">
 <meta name="referrer" content="no-referrer">
-<title>HIGHLIKEMYPJ DESK · live</title>
-<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<title>Desk</title>
+<link rel="apple-touch-icon" sizes="180x180" href="icons/dash-180.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/dash-192.png">
+<link rel="manifest" id="mf" href="dash.webmanifest">
+<script>
+/* Home Screen: the data key lives only in the URL hash (#d=...) and this device's storage, never in the repo.
+   iOS home-screen apps get their own storage, so the saved icon must carry the key in its URL:
+   1) keep #d=KEY in the address bar (re-added from storage if missing), so "Add to Home Screen" saves it;
+   2) swap the static manifest for an in-memory one whose start_url includes the same #d=KEY. */
+(function () {
+  var re = /^#d=([A-Za-z0-9_-]{32,})/, m = location.hash.match(re), k = m ? m[1] : null;
+  try { if (k) localStorage.setItem("dataPath", k); else k = localStorage.getItem("dataPath"); } catch (e) { }
+  window.DESK_KEY = k;
+  addEventListener("hashchange", function () { var n = location.hash.match(re); if (n && n[1] !== k) location.reload(); });
+  window.deskHash = function (floor) { return (k ? "#d=" + k : "") + (floor ? (k ? "&" : "#") + "floor" : ""); };
+  if (k && !m) try { history.replaceState(null, "", location.pathname + location.search + window.deskHash(/(^#|&)floor\b/.test(location.hash))); } catch (e) { }
+  if (!k) return;
+  var dir = location.origin + location.pathname.replace(/[^/]*$/, ""), page = location.origin + location.pathname;
+  var mf = { id: dir + "dash.html", name: "Desk", short_name: "Desk", start_url: page + "#d=" + k, scope: dir, display: "standalone",
+    orientation: "portrait", background_color: "#000000", theme_color: "#000000",
+    icons: [180, 192, 512].map(function (n) { return { src: dir + "icons/dash-" + n + ".png", sizes: n + "x" + n, type: "image/png" }; }) };
+  try { document.getElementById("mf").href = URL.createObjectURL(new Blob([JSON.stringify(mf)], { type: "application/manifest+json" })); } catch (e) { }
+})();
+</script>
 <link rel="stylesheet" href="dash.css">
 <link rel="stylesheet" href="m.css">
 </head>
@@ -92,5 +118,6 @@
 <script src="dash.js"></script>
 <script src="vendor/lightweight-charts.js"></script>
 <script src="m.js"></script>
+<script>if ("serviceWorker" in navigator && location.protocol === "https:") navigator.serviceWorker.register("sw.js").catch(function () { });</script>
 </body>
 </html>

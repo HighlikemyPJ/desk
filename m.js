@@ -50,8 +50,8 @@
     document.querySelectorAll(".mtabs button").forEach(b => b.classList.toggle("on", b.dataset.v === v));
     if (v === "floor") { closeCoin(); setTimeout(() => dispatchEvent(new Event("resize")), 30); }
   }
-  document.querySelectorAll(".mtabs button").forEach(b => b.onclick = () => { setView(b.dataset.v); history.replaceState(null, "", b.dataset.v === "floor" ? "#floor" : location.pathname + location.search); });
-  setView(location.hash === "#floor" ? "floor" : "app");
+  document.querySelectorAll(".mtabs button").forEach(b => b.onclick = () => { setView(b.dataset.v); history.replaceState(null, "", location.pathname + location.search + (window.deskHash ? window.deskHash(b.dataset.v === "floor") : (b.dataset.v === "floor" ? "#floor" : ""))); });
+  setView(/(^#|&)floor\b/.test(location.hash) ? "floor" : "app");
 
   // ---------- balance with odometer cents
   function renderBal(v) {
@@ -388,7 +388,7 @@
   });
   addEventListener("deskerr", e => {
     const m = q("#merr"); m.hidden = false;
-    m.textContent = e.detail === "nolink" ? "No data link yet. Open the dashboard once with the private link from Telegram (it ends in #d=…)." : "Can't reach the desk feed (" + e.detail + "). Retrying.";
+    m.textContent = e.detail === "nolink" ? "No data link yet. Open the private link from Telegram (it ends in #d=…) in Safari, then Share → Add to Home Screen from that page." : "Can't reach the desk feed (" + e.detail + "). Retrying.";
   });
   function clock() {
     q("#mclock").textContent = new Date().toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", second: "2-digit", timeZone: TZN }) + " ET";
