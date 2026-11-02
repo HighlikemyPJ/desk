@@ -19,6 +19,7 @@
   const pc = (v, d = 1) => v == null ? "–" : (v > 0 ? "+" : "") + v.toFixed(d) + "%";
   const knum = v => v == null ? "–" : v >= 1e6 ? (v / 1e6).toFixed(2) + "M" : v >= 1e3 ? (v / 1e3).toFixed(1) + "K" : String(v);
   const age = ts => { if (!ts) return "–"; const s = Math.max(0, Date.now() / 1000 - ts); return s < 60 ? Math.round(s) + "s" : s < 3600 ? Math.round(s / 60) + "m" : s < 172800 ? Math.round(s / 3600) + "h" : Math.round(s / 86400) + "d"; };
+  const SRC = s => ({ momentum: "MOM", bluechip: "BLU", volspike: "VOL", copy: "CPY" })[s] || "MIG";
   const hm = ts => new Date(ts * 1000).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", timeZone: TZN });
   function pxHtml(p) {               // $0.0₃2468 style for tiny memecoin prices
     if (p == null) return "–";
@@ -166,10 +167,10 @@
     const a = A.app.agents, d = A.d;
     q("#mrunning").textContent = (A.app.running ?? 0) + " running";
     const sc = a.scanner, pools = sc.pools || [];
-    const prow = p => `<div class="pool"><b>${h(p.coin)}</b><span class="mgray">${age(p.created)}</span><span>${kmoney(p.liq)}</span><span class="t ${p.source === "momentum" ? "mom" : p.source === "copy" ? "cpy" : "mig"}">${p.source === "momentum" ? "MOM" : p.source === "copy" ? "CPY" : "MIG"}</span>${p.pass ? '<span class="mgreen">✓</span>' : ""}</div>`;
+    const prow = p => `<div class="pool"><b>${h(p.coin)}</b><span class="mgray">${age(p.created)}</span><span>${kmoney(p.liq)}</span><span class="t ${p.source === "migration" ? "mig" : p.source === "copy" ? "cpy" : "mom"}">${SRC(p.source)}</span>${p.pass ? '<span class="mgreen">✓</span>' : ""}</div>`;
     const list = pools.map(prow).join("");
     card("scanner", "s" + pools.map(p => p.mint).join() + sc.n,
-      `<h4>${ICON.scanner}Scanner</h4><div class="radar"></div><div class="big">+${sc.n} pools</div><div class="sm">tonight · mig ${sc.mig} / mom ${sc.mom}${sc.cpy ? ` / copy ${sc.cpy}` : ""}</div>` +
+      `<h4>${ICON.scanner}Scanner</h4><div class="radar"></div><div class="big">+${sc.n} pools</div><div class="sm">tonight · mig ${sc.mig} / mom ${sc.mom}${sc.blu ? ` / blu ${sc.blu}` : ""}${sc.vol ? ` / vol ${sc.vol}` : ""}${sc.cpy ? ` / copy ${sc.cpy}` : ""}</div>` +
       (pools.length ? `<div class="pools"><div class="roll ${pools.length < 4 ? "still" : ""}">${list}${pools.length >= 4 ? list : ""}</div></div>` : `<div class="empty">waiting for pools</div>`));
     const au = a.auditor;
     card("auditor", "a" + JSON.stringify(au),
@@ -232,7 +233,7 @@
     q("#mcoinsn").textContent = cs.length ? cs.length + " watched" : "";
     if (!cs.length) { box.innerHTML = `<div class="mnone" style="flex:1">No coins on watch yet</div>`; return; }
     const ST = { holding: "holding", waiting: "waiting room", audited: "audited", passed: "passed scanner", watching: "watching" };
-    box.innerHTML = cs.map(c => `<button class="mcc" data-m="${h(c.mint)}"><div class="r1">${logo(c.img, c.symbol, "sm")}<div style="min-width:0"><div class="sym">${h(c.symbol)}</div><div class="st">${ST[c.status] || c.status} · ${c.source === "momentum" ? "MOM" : "MIG"}</div></div></div>${spark(c.spark)}<div class="r2"><span>${kmoney(c.mcap)}</span><span class="${(c.m5 ?? 0) >= 0 ? "mgreen" : "mred"}">${c.m5 == null ? "–" : pc(c.m5)} <span class="mgray">5m</span></span></div></button>`).join("");
+    box.innerHTML = cs.map(c => `<button class="mcc" data-m="${h(c.mint)}"><div class="r1">${logo(c.img, c.symbol, "sm")}<div style="min-width:0"><div class="sym">${h(c.symbol)}</div><div class="st">${ST[c.status] || c.status} · ${SRC(c.source)}</div></div></div>${spark(c.spark)}<div class="r2"><span>${kmoney(c.mcap)}</span><span class="${(c.m5 ?? 0) >= 0 ? "mgreen" : "mred"}">${c.m5 == null ? "–" : pc(c.m5)} <span class="mgray">5m</span></span></div></button>`).join("");
     box.querySelectorAll(".mcc").forEach(el => el.onclick = () => openCoin(el.dataset.m));
   }
 
@@ -269,7 +270,7 @@
         <div class="mstats" id="mcstats"></div><div class="mcards2" id="mccards"></div>`;
       buildChart();
     }
-    q("#mcmeta").textContent = `Solana · ${age(c.created)} old · found by Scanner/${c.source === "momentum" ? "momentum" : "migration"}`;
+    q("#mcmeta").textContent = `Solana · ${age(c.created)} old · found by Scanner/${["momentum", "bluechip", "volspike", "copy"].includes(c.source) ? c.source : "migration"}`;
     q("#mcprice").innerHTML = pxHtml(c.price);
     q("#mcsince").innerHTML = p ? `<span class="${p.pnl_pct >= 0 ? "mgreen" : "mred"}">${p.pnl_pct >= 0 ? up : down} ${Math.abs(p.pnl_pct).toFixed(2)}%</span> <span class="mgray" style="font-weight:500">since entry</span>`
       : `<span class="${(c.h1 ?? 0) >= 0 ? "mgreen" : "mred"}">${c.h1 == null ? "" : pc(c.h1) + " "}</span><span class="mgray" style="font-weight:500">${c.h1 == null ? "not held" : "1h · not held"}</span>`;
