@@ -194,6 +194,7 @@ html { background:#000; }
 .b-migration { background:rgba(175,82,222,.24); color:#d29bff; }
 .b-bluechip { background:rgba(255,204,0,.2); color:#ffd60a; }
 .b-volspike { background:rgba(255,149,0,.22); color:#ffa940; }
+.b-sniper { background:rgba(255,45,170,.24); color:#ff5fc8; }
 .b-copy { background:rgba(46,230,201,.18); color:#2ee6c9; }
 .b-unknown { background:rgba(142,142,147,.22); color:#b8b8bd; }
 .b-total { background:#fff; color:#000; }

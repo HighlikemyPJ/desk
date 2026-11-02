@@ -19,9 +19,9 @@
   const pc = (v, d = 1) => v == null ? "–" : (v > 0 ? "+" : "") + v.toFixed(d) + "%";
   const knum = v => v == null ? "–" : v >= 1e6 ? (v / 1e6).toFixed(2) + "M" : v >= 1e3 ? (v / 1e3).toFixed(1) + "K" : String(v);
   const age = ts => { if (!ts) return "–"; const s = Math.max(0, Date.now() / 1000 - ts); return s < 60 ? Math.round(s) + "s" : s < 3600 ? Math.round(s / 60) + "m" : s < 172800 ? Math.round(s / 3600) + "h" : Math.round(s / 86400) + "d"; };
-  const SRC = s => ({ momentum: "MOM", bluechip: "BLU", volspike: "VOL", copy: "CPY" })[s] || "MIG";
+  const SRC = s => ({ momentum: "MOM", bluechip: "BLU", volspike: "VOL", sniper: "SNP", copy: "CPY" })[s] || "MIG";
   // one colored badge per bot, used on the P&L-by-bot table and on every trade row (t81)
-  const BOTN = { momentum: "Momentum", migration: "Migration", bluechip: "Bluechip", volspike: "Volspike", copy: "Copy", unknown: "Unknown" };
+  const BOTN = { momentum: "Momentum", migration: "Migration", bluechip: "Bluechip", volspike: "Volspike", sniper: "Sniper", copy: "Copy", unknown: "Unknown" };
   const BOTK = b => BOTN[b] ? b : b ? "migration" : "unknown";
   const BB = (b, full) => { const k = BOTK(b); return `<span class="bb b-${k}">${full ? BOTN[k] : k === "unknown" ? "UNK" : SRC(k)}</span>`; };
   const hm = ts => new Date(ts * 1000).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", timeZone: TZN });
@@ -215,7 +215,7 @@
     if (!X) { box.innerHTML = `<div class="mnone">Boss card appears after the next feed update</div>`; q("#mbossn").innerHTML = ""; return; }
     const st = X.status === "limit" ? `<span class="bst lim">Daily limit hit</span>` : X.status === "off" ? `<span class="bst off">Off</span>` : `<span class="bst ok">In charge</span>`;
     q("#mbossn").innerHTML = st;
-    const P = X.pnl, lim = Math.abs(P.limit), used = Math.max(0, Math.min(1, -P.total / lim));
+    const P = X.pnl, limOn = P.limit != null, lim = limOn ? Math.abs(P.limit) : 0, used = limOn ? Math.max(0, Math.min(1, -P.total / lim)) : 0;
     const tone = v => Math.abs(v) < 0.005 ? "mgray" : v > 0 ? "mgreen" : "mred";
     const mins = s => s >= 60 ? Math.ceil(s / 60) + "m" : Math.max(1, Math.round(s)) + "s";
     const AC = { approve: ["ok", "Approved"], block: ["no", "Blocked"], resize: ["rs", "Resized"] };
@@ -227,11 +227,12 @@
       : `<div class="bnone">No decisions yet: the Boss reviews each buy after the Analyst</div>`;
     const T = X.today || {};
     box.innerHTML = `<div class="bpnl"><div><small>Today's P&amp;L</small><b class="${tone(P.total)}">${money(P.total, true)}</b><small class="mgray">${money(P.realized, true)} realized · ${money(P.unrealized, true)} open</small></div>` +
-      `<div class="blim"><small>Daily limit</small><b class="mred">-$${lim.toFixed(2)}</b><small class="mgray">${Math.round(used * 100)}% used</small></div></div>` +
-      `<div class="bbar"><i style="width:${(used * 100).toFixed(1)}%" class="${used >= 1 ? "full" : used >= 0.6 ? "warn" : ""}"></i></div>` +
+      (limOn ? `<div class="blim"><small>Daily limit</small><b class="mred">-$${lim.toFixed(2)}</b><small class="mgray">${Math.round(used * 100)}% used</small></div></div>` +
+        `<div class="bbar"><i style="width:${(used * 100).toFixed(1)}%" class="${used >= 1 ? "full" : used >= 0.6 ? "warn" : ""}"></i></div>`
+        : `<div class="blim"><small>Daily limit</small><b class="mgray">Daily limit: off</b><small class="mgray">signal exits · -${X.rules.floor || 30}% floor</small></div></div>`) +
       `<div class="bsub">Bench</div>${bench}` +
       `<div class="bsub">Last decisions <span class="mgray">· today ${T.approve || 0} approved · ${T.resize || 0} resized · ${T.block || 0} blocked</span></div>${dec}` +
-      `<div class="bnote">Bench after ${X.rules.bench_after} losses for ${X.rules.bench_min}m · losing bot ${X.rules.losing_x}x size · skip &gt;+${X.rules.m5_pump}% in 5m${X.rules.m5_buys ? " or 5m sells &gt; buys" : ""} · day since ${hm(X.since)} ET</div>`;
+      `<div class="bnote">Bench after ${X.rules.bench_after} losses for ${X.rules.bench_min}m · losing bot ${X.rules.losing_x}x size · skip &gt;+${X.rules.m5_pump}% in 5m (not sniper)${X.rules.m5_buys ? " or 5m sells &gt; buys" : ""} · ${X.rules.daily_limit ? "daily limit on" : "Daily limit: off"} · day since ${hm(X.since)} ET</div>`;
   }
 
   // ---------- live P&L by bot (t81)
@@ -320,7 +321,7 @@
         <div class="mstats" id="mcstats"></div><div class="mcards2" id="mccards"></div>`;
       buildChart();
     }
-    q("#mcmeta").textContent = `Solana · ${age(c.created)} old · found by Scanner/${["momentum", "bluechip", "volspike", "copy"].includes(c.source) ? c.source : "migration"}`;
+    q("#mcmeta").textContent = `Solana · ${age(c.created)} old · found by Scanner/${["momentum", "bluechip", "volspike", "sniper", "copy"].includes(c.source) ? c.source : "migration"}`;
     q("#mcprice").innerHTML = pxHtml(c.price);
     q("#mcsince").innerHTML = p ? `<span class="${p.pnl_pct >= 0 ? "mgreen" : "mred"}">${p.pnl_pct >= 0 ? up : down} ${Math.abs(p.pnl_pct).toFixed(2)}%</span> <span class="mgray" style="font-weight:500">since entry</span>`
       : `<span class="${(c.h1 ?? 0) >= 0 ? "mgreen" : "mred"}">${c.h1 == null ? "" : pc(c.h1) + " "}</span><span class="mgray" style="font-weight:500">${c.h1 == null ? "not held" : "1h · not held"}</span>`;
