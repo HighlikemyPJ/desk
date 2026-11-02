@@ -388,7 +388,7 @@
   });
   addEventListener("deskerr", e => {
     const m = q("#merr"); m.hidden = false;
-    m.textContent = e.detail === "nolink" ? "No data link yet. Open the private link from Telegram (it ends in #d=…) in Safari, then Share → Add to Home Screen from that page." : "Can't reach the desk feed (" + e.detail + "). Retrying.";
+    m.textContent = e.detail === "nolink" ? "No data link yet. Open the private link from Telegram (it contains ?d=…) in Safari, then Share → Add to Home Screen from that page. If you added the icon before, delete it and add it again." : "Can't reach the desk feed (" + e.detail + "). Retrying.";
   });
   function clock() {
     q("#mclock").textContent = new Date().toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", second: "2-digit", timeZone: TZN }) + " ET";

@@ -3,7 +3,7 @@
 const $ = (s, r = document) => r.querySelector(s);
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 const POLL = 3000;
-// The key comes from #d=... (kept in the URL so an iOS Home Screen icon saves it); dash.html's head script stores it.
+// The key comes from ?d=... (or legacy #d=...), kept in the URL so an iOS Home Screen icon saves it; dash.html's head script stores it.
 const DP = window.DESK_KEY || (() => { try { return localStorage.getItem("dataPath"); } catch (e) { return null; } })();
 const RM = matchMedia("(prefers-reduced-motion: reduce)").matches;
 const TZ = "America/New_York";
@@ -423,7 +423,7 @@ function idleCursor() {
 
 // ---------- poll
 async function poll() {
-  if (!DP) { window.dispatchEvent(new CustomEvent("deskerr", { detail: "nolink" })); $("#err").hidden = false; $("#err").textContent = "No data link yet. Open the dashboard once with the private link from Telegram (it ends in #d=…)."; return; }
+  if (!DP) { window.dispatchEvent(new CustomEvent("deskerr", { detail: "nolink" })); $("#err").hidden = false; $("#err").textContent = "No data link yet. Open the dashboard once with the private link from Telegram (it contains ?d=…)."; return; }
   try {
     const d = await Feed.get(DP, "dash.json"); D.lastPoll = Date.now();
     if (D.data && d.updated_at !== D.data.updated_at) uplinkPulse();

@@ -14,25 +14,34 @@
 <title>Desk</title>
 <link rel="apple-touch-icon" sizes="180x180" href="icons/dash-180.png">
 <link rel="icon" type="image/png" sizes="192x192" href="icons/dash-192.png">
-<link rel="manifest" id="mf" href="dash.webmanifest">
 <script>
-/* Home Screen: the data key lives only in the URL hash (#d=...) and this device's storage, never in the repo.
+/* Home Screen: the data key lives only in the page URL (?d=KEY, or legacy #d=KEY) and this device's storage, never in the repo.
    iOS home-screen apps get their own storage, so the saved icon must carry the key in its URL:
-   1) keep #d=KEY in the address bar (re-added from storage if missing), so "Add to Home Screen" saves it;
-   2) swap the static manifest for an in-memory one whose start_url includes the same #d=KEY. */
+   1) keep ?d=KEY in the address bar (moved from #d= or re-added from storage if missing) - iOS keeps query strings;
+   2) on iOS, no manifest at all when a key is present: Add to Home Screen then saves the current URL (with ?d=KEY),
+      and the apple-* meta tags give the full-screen app. (iOS 16.4+ uses a manifest's start_url when one exists.)
+   3) elsewhere, an in-memory manifest whose start_url is the ?d=KEY URL; with no key, the static dash.webmanifest. */
 (function () {
-  var re = /^#d=([A-Za-z0-9_-]{32,})/, m = location.hash.match(re), k = m ? m[1] : null;
+  var ok = /^[A-Za-z0-9_-]{32,}$/, q = new URLSearchParams(location.search), qk = q.get("d");
+  var hm = location.hash.match(/^#d=([A-Za-z0-9_-]{32,})/), k = (qk && ok.test(qk)) ? qk : (hm ? hm[1] : null);
   try { if (k) localStorage.setItem("dataPath", k); else k = localStorage.getItem("dataPath"); } catch (e) { }
+  if (k && !ok.test(k)) k = null;
   window.DESK_KEY = k;
-  addEventListener("hashchange", function () { var n = location.hash.match(re); if (n && n[1] !== k) location.reload(); });
-  window.deskHash = function (floor) { return (k ? "#d=" + k : "") + (floor ? (k ? "&" : "#") + "floor" : ""); };
-  if (k && !m) try { history.replaceState(null, "", location.pathname + location.search + window.deskHash(/(^#|&)floor\b/.test(location.hash))); } catch (e) { }
-  if (!k) return;
-  var dir = location.origin + location.pathname.replace(/[^/]*$/, ""), page = location.origin + location.pathname;
-  var mf = { id: dir + "dash.html", name: "Desk", short_name: "Desk", start_url: page + "#d=" + k, scope: dir, display: "standalone",
-    orientation: "portrait", background_color: "#000000", theme_color: "#000000",
-    icons: [180, 192, 512].map(function (n) { return { src: dir + "icons/dash-" + n + ".png", sizes: n + "x" + n, type: "image/png" }; }) };
-  try { document.getElementById("mf").href = URL.createObjectURL(new Blob([JSON.stringify(mf)], { type: "application/manifest+json" })); } catch (e) { }
+  var floor = /(^#|&)floor\b/.test(location.hash);
+  window.deskHash = function (f) { return f ? "#floor" : ""; };
+  addEventListener("hashchange", function () { var n = location.hash.match(/^#d=([A-Za-z0-9_-]{32,})/); if (n && n[1] !== k) { var u = new URLSearchParams(location.search); u.set("d", n[1]); location.replace(location.pathname + "?" + u.toString() + (/(^#|&)floor\b/.test(location.hash) ? "#floor" : "")); } });
+  if (k && (qk !== k || hm)) { q.set("d", k); try { history.replaceState(null, "", location.pathname + "?" + q.toString() + window.deskHash(floor)); } catch (e) { } }
+  var ios = /iP(hone|od|ad)/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+  var dir = location.origin + location.pathname.replace(/[^/]*$/, ""), page = location.origin + location.pathname, href = null;
+  if (!k) href = "dash.webmanifest";
+  else if (!ios) {
+    var mf = { id: dir + "dash.html", name: "Desk", short_name: "Desk", start_url: page + "?d=" + k, scope: dir, display: "standalone",
+      orientation: "portrait", background_color: "#000000", theme_color: "#000000",
+      icons: [180, 192, 512].map(function (n) { return { src: dir + "icons/dash-" + n + ".png", sizes: n + "x" + n, type: "image/png" }; }) };
+    try { href = URL.createObjectURL(new Blob([JSON.stringify(mf)], { type: "application/manifest+json" })); } catch (e) { }
+  }
+  window.DESK_MANIFEST = href ? (href === "dash.webmanifest" ? "static" : "blob") : "none";
+  if (href) { var l = document.createElement("link"); l.rel = "manifest"; l.id = "mf"; l.href = href; document.head.appendChild(l); }
 })();
 </script>
 <link rel="stylesheet" href="dash.css">
