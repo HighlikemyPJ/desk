@@ -19,8 +19,16 @@ const Feed = (() => {
     const raw = await crypto.subtle.digest("SHA-256", enc.encode("desk-key:" + p));
     key = await crypto.subtle.importKey("raw", raw, "AES-GCM", false, ["decrypt"]);
   }
-  async function slotFile(k) {
-    const r = await fetch(`https://raw.githubusercontent.com/${CFG.repo}/${CFG.branch}/e/${id}/${k}.bin`, { cache: "no-store" });
+  // raw.githubusercontent caches a 404 for minutes per URL (and per browser header variant). These spellings are the same
+  // file but separate cache entries: the newest slot (often asked a few seconds before it lands) is probed on its own
+  // spelling, so it never poisons the ones older slots are read from; an older slot that 404s gets two more spellings.
+  const PROBE = "highlikemypj/desk/refs/heads/data", READ = ["HighlikemyPJ/desk/data", "HighlikemyPJ/desk/refs/heads/data", "highlikemypj/desk/data"];
+  async function slotFile(k, newest) {
+    let r = null;
+    for (const base of newest ? [PROBE] : READ) {
+      r = await fetch(`https://raw.githubusercontent.com/${base}/e/${id}/${k}.bin`, { cache: "no-store" });
+      if (r.status !== 404) break;
+    }
     if (r.status === 404) return null;
     if (!r.ok) throw new Error("HTTP " + r.status);
     const buf = await r.arrayBuffer();
@@ -34,12 +42,13 @@ const Feed = (() => {
     if (k <= lastSlot) return bundle;
     for (let j = k; j > Math.max(lastSlot, k - CFG.back); j--) {
       if (missed.has(j)) continue;
-      const b = await slotFile(j);
+      const b = await slotFile(j, j === k);
       if (b) {
         if (j === k) margin = Math.max(CFG.margin, margin - 0.25);
         bundle = b; lastSlot = j; return bundle;
       }
-      missed.add(j);                                   // a 404 is cached by the CDN for minutes: never ask again
+      if (j !== k) missed.add(j);                      // a 404 is cached by the CDN for minutes: never ask that slot again (the newest
+                                                       // was only probed on its own spelling, so it can still be read later)
       if (j === k && bundle) margin = Math.min(CFG.maxMargin, margin + 2);  // asked too early: wait longer next time
     }
     if (!bundle) throw new Error("no snapshot yet");
