@@ -417,7 +417,7 @@
   // ---------- data
   addEventListener("deskdata", e => {
     const d = e.detail; if (!d || !d.app) return;
-    A.d = d; A.app = d.app; q("#merr").hidden = true;
+    A.d = d; A.app = d.app; note();
     const mm = q("#mmode"); mm.textContent = d.mode + (d.exec ? " · " + String(d.exec).toUpperCase() : ""); mm.className = "mmode" + (d.mode === "LIVE" ? " live" : "");
     eqData(); hero(); agents(); feed(); coins(); toasts(); celebrate();
     if (A.open) renderCoin(false);
@@ -426,14 +426,25 @@
     if (A.first) { const cm = new URLSearchParams(location.search).get("coin"); if (cm) openCoin(cm); }
     A.first = false;
   });
+  // While only an older snapshot is available (box paused / phone offline) keep showing it with a calm amber note, never a red error.
+  function note(force) {
+    const m = q("#merr"); if (!A.d) return;
+    const lag = Date.now() / 1000 - (A.d.updated_at || 0);
+    if (!force && lag < (Feed.remote ? 90 : 30)) { m.hidden = true; return; }
+    m.hidden = false; m.className = "merr warn";
+    m.textContent = "Desk paused, last update " + hm(A.d.updated_at) + " ET. Reconnecting…";
+  }
   addEventListener("deskerr", e => {
-    const m = q("#merr"); m.hidden = false;
-    m.textContent = e.detail === "nolink" ? "No data link yet. Open the private link from Telegram (it contains ?d=…) in Safari, then Share → Add to Home Screen from that page. If you added the icon before, delete it and add it again." : "Can't reach the desk feed (" + e.detail + "). Retrying.";
+    const m = q("#merr");
+    if (e.detail !== "nolink" && A.d) { note(true); return; }
+    m.hidden = false; m.className = "merr warn";
+    m.textContent = e.detail === "nolink" ? "No data link yet. Open the private link from Telegram (it contains ?d=…) in Safari, then Share → Add to Home Screen from that page. If you added the icon before, delete it and add it again." : "Connecting to the desk… Reconnecting.";
   });
   function clock() {
     q("#mclock").textContent = new Date().toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", second: "2-digit", timeZone: TZN }) + " ET";
     const f = q("#mfeed"); if (!A.d) return;
-    const lag = Date.now() / 1000 - A.d.updated_at; f.className = "mdot " + (lag < (Feed.remote ? 45 : 20) ? "ok" : "stale");
+    const lag = Date.now() / 1000 - A.d.updated_at; f.className = "mdot " + (lag < (Feed.remote ? 45 : 20) ? "ok" : lag < (Feed.remote ? 90 : 30) ? "stale" : "paused");
+    if (Math.floor(Date.now() / 1000) % 5 === 0) note();
   }
   setInterval(clock, 1000); clock();
   tfButtons();

@@ -16,6 +16,8 @@ body.v-floor { padding-bottom:70px; }
 .mmode.live { background:var(--r3); color:#fff; }
 .mclock { color:var(--gray); font-size:13px; font-variant-numeric:tabular-nums; }
 .merr { background:#2a1214; color:#ff9aa5; border-radius:14px; padding:12px 14px; margin:6px 0 10px; font-size:14px; }
+.merr.warn { background:#2a2210; color:#FFC266; border:1px solid rgba(255,159,10,.25); }
+.mdot.paused { background:var(--o3); }
 .mgrid { display:grid; grid-template-columns:minmax(0,1fr); gap:6px; }
 @media (min-width: 960px) { .mgrid { grid-template-columns:minmax(0,1.35fr) minmax(0,1fr); gap:28px; align-items:start; } }
 .mcol { min-width:0; }

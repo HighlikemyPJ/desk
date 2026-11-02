@@ -88,7 +88,7 @@ const Feed = (() => {
     }
     if (!bundle) await cached(dp);
     try {
-      const L = await latest();
+      const L = bundle && k - lastSlot < 4 ? null : await latest();   // only after ~1 min without a new slot (or nothing at all)
       if (L && (!bundle || (L[0].slot || 0) > lastSlot)) { bundle = L[0]; lastSlot = L[0].slot || lastSlot; source = "latest"; save(L[1]); }
     } catch (e) { if (!bundle) throw e; }
     if (!bundle) throw new Error("no snapshot yet");

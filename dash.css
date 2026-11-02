@@ -17,6 +17,7 @@ a { color: var(--c); text-decoration: none; }
 .feed.stale::before { color:var(--r); }
 .home { border:1px solid var(--pinkd); padding:0 6px; }
 .err { border:1px solid var(--r); color:var(--r); padding:6px; margin:8px 0; }
+.err.warn { border-color:var(--y); color:var(--y); }
 .panel { border:1px solid var(--pink); background:#0a0a0a; margin-top:10px; min-width:0; }
 .ph { display:flex; justify-content:space-between; gap:8px; padding:4px 8px; border-bottom:1px solid var(--pinkd); color:#fff; font-size:18px; letter-spacing:1px; text-transform:uppercase; }
 .ph.sub { border-top:1px solid var(--pinkd); }

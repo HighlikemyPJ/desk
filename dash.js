@@ -422,12 +422,25 @@ function idleCursor() {
 }
 
 // ---------- poll
+// Calm amber note (not an error) while we only have an older snapshot: the box pauses when idle and publishes nothing.
+const STALE_S = () => Feed.remote ? 90 : 30;
+const hmET = ts => new Date(ts * 1000).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", timeZone: TZ });
+function pausedNote(force) {
+  const el = $("#err"), d = D.data;
+  if (!d) return;
+  const lag = Date.now() / 1000 - (d.updated_at || 0);
+  if (!force && lag < STALE_S()) { el.hidden = true; return; }
+  el.hidden = false; el.className = "err warn";
+  el.textContent = "Desk paused, last update " + hmET(d.updated_at) + " ET. Reconnecting…";
+}
+setInterval(() => pausedNote(), 5000);
 async function poll() {
   if (!DP) { window.dispatchEvent(new CustomEvent("deskerr", { detail: "nolink" })); $("#err").hidden = false; $("#err").textContent = "No data link yet. Open the dashboard once with the private link from Telegram (it contains ?d=…)."; return; }
   try {
-    const d = await Feed.get(DP, "dash.json"); D.lastPoll = Date.now();
+    // First paint: the last snapshot kept on this device (still encrypted at rest), then live data from the next poll on.
+    const d = (!D.data && Feed.peek && await Feed.peek(DP).catch(() => null)) || await Feed.get(DP, "dash.json"); D.lastPoll = Date.now();
     if (D.data && d.updated_at !== D.data.updated_at) uplinkPulse();
-    D.data = d; D.lastOk = Date.now(); $("#err").hidden = true;
+    D.data = d; D.lastOk = Date.now(); pausedNote();
     window.dispatchEvent(new CustomEvent("deskdata", { detail: d }));
     const badge = $("#mode"); badge.textContent = d.mode + (d.exec ? " · " + d.exec.toUpperCase() : ""); badge.className = "badge" + (d.mode === "LIVE" ? " live" : "");
     cards(d); balance(d); coin(d); overlays(d);
@@ -452,7 +465,8 @@ async function poll() {
     const w = d.wallet || {};
     $("#foot").textContent = `bot wallet ${w.address || "n/a"} · updated ${hms(d.updated_at)} ET · ${Feed.remote ? "public feed every 15s" : "feed every 3s"}`;
   } catch (e) {
-    $("#err").hidden = false; $("#err").textContent = "Can't reach the desk feed (" + e.message + "). Retrying.";
+    if (D.data) pausedNote(true);
+    else { $("#err").hidden = false; $("#err").className = "err warn"; $("#err").textContent = "Connecting to the desk… (" + e.message + "). Retrying."; }
     window.dispatchEvent(new CustomEvent("deskerr", { detail: e.message }));
   }
 }
