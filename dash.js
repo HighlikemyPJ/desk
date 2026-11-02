@@ -380,7 +380,7 @@ function coin(d) {
   const ps = d.positions || [];
   $("#poscount").textContent = ps.length + " open · " + (d.closed_today || 0) + " closed today";
   $("#positions").innerHTML = ps.length ? `<table><tr><th>COIN</th><th>SIZE</th><th>ENTRY</th><th>LAST</th><th>P&amp;L</th><th>STOP</th></tr>${ps.map(p =>
-    `<tr><td><a href="${esc(p.coin_url)}" target="_blank" rel="noopener">${esc(p.coin)}</a> <span class="dim">${esc(p.mode)}</span></td><td>${usd(p.size_usd)}</td><td>${price(p.entry_price)}</td><td>${price(p.last_price)}</td>
+    `<tr><td><a href="${esc(p.coin_url)}" target="_blank" rel="noopener">${esc(p.coin)}</a> <span class="bb b-${esc(["momentum","migration","bluechip","volspike","copy"].includes(p.bot) ? p.bot : "unknown")}">${esc({momentum:"MOM",migration:"MIG",bluechip:"BLU",volspike:"VOL",copy:"CPY"}[p.bot] || "UNK")}</span> <span class="dim">${esc(p.mode)}</span></td><td>${usd(p.size_usd)}</td><td>${price(p.entry_price)}</td><td>${price(p.last_price)}</td>
      <td class="${p.pnl_pct >= 0 ? "up" : "down"}">${pct(p.pnl_pct)}</td><td class="down">${price(p.exit_line)}</td></tr>`).join("")}</table>`
     : `<div class="empty">no open positions · waiting for first trade</div>`;
 }

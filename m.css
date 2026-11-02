@@ -186,3 +186,32 @@ html { background:#000; }
 .mtoast.show { transform:translate(-50%, 0); opacity:1; }
 .mtoast small { font-weight:600; opacity:.8; margin-left:6px; }
 @media (prefers-reduced-motion: reduce) { .mtoast { transition:opacity .2s; } }
+
+/* t81: one colored badge per bot (unscoped so the Floor table can use it too) */
+.bb { display:inline-block; font:700 10px/16px -apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, sans-serif; letter-spacing:.3px; padding:0 6px; border-radius:6px; vertical-align:1px; white-space:nowrap; }
+.pool .bb { align-self:center; font-size:9.5px; line-height:15px; padding:0 5px; }
+.b-momentum { background:rgba(61,139,255,.22); color:#7fb4ff; }
+.b-migration { background:rgba(175,82,222,.24); color:#d29bff; }
+.b-bluechip { background:rgba(255,204,0,.2); color:#ffd60a; }
+.b-volspike { background:rgba(255,149,0,.22); color:#ffa940; }
+.b-copy { background:rgba(46,230,201,.18); color:#2ee6c9; }
+.b-unknown { background:rgba(142,142,147,.22); color:#b8b8bd; }
+.b-total { background:#fff; color:#000; }
+.mbots { background:var(--card); border-radius:20px; padding:6px 14px 10px; }
+.bhead, .brow { display:grid; grid-template-columns:minmax(78px,1.1fr) 1.25fr 1.1fr .7fr; gap:6px; align-items:center; }
+.bhead { font-size:10.5px; color:var(--gray); font-weight:600; text-transform:uppercase; letter-spacing:.3px; padding:8px 0 6px; border-bottom:1px solid #262626; }
+.bhead span:not(:first-child), .brow .c { text-align:right; }
+.brow { padding:9px 0 7px; border-top:1px solid #262626; }
+.bhead + .brow { border-top:0; }
+.brow .bb { justify-self:start; font-size:11px; line-height:20px; padding:0 8px; }
+.brow .c b { display:block; font-size:14px; font-weight:700; font-variant-numeric:tabular-nums; }
+.brow .c small { display:block; font-size:11px; font-variant-numeric:tabular-nums; margin-top:1px; }
+.brow .wl b span + span { margin-left:1px; }
+.brow.tot { border-top:1px solid #3a3a3c; margin-top:2px; }
+.bopen { display:flex; flex-wrap:wrap; gap:6px; padding:0 0 8px; }
+.bchip { background:#242426; border:0; border-radius:99px; color:#fff; font:600 11.5px/1 inherit; font-family:inherit; padding:6px 10px; cursor:pointer; font-variant-numeric:tabular-nums; }
+.bchip:active { transform:scale(.97); }
+.bnote { font-size:11px; color:var(--gray); padding-top:6px; }
+.mrow .t1 .bb { margin-right:2px; }
+.mcc .st .bb { font-size:9px; line-height:14px; padding:0 4px; }
+.mcardx .k .bb { margin-left:6px; }

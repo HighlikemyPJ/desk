@@ -20,6 +20,10 @@
   const knum = v => v == null ? "–" : v >= 1e6 ? (v / 1e6).toFixed(2) + "M" : v >= 1e3 ? (v / 1e3).toFixed(1) + "K" : String(v);
   const age = ts => { if (!ts) return "–"; const s = Math.max(0, Date.now() / 1000 - ts); return s < 60 ? Math.round(s) + "s" : s < 3600 ? Math.round(s / 60) + "m" : s < 172800 ? Math.round(s / 3600) + "h" : Math.round(s / 86400) + "d"; };
   const SRC = s => ({ momentum: "MOM", bluechip: "BLU", volspike: "VOL", copy: "CPY" })[s] || "MIG";
+  // one colored badge per bot, used on the P&L-by-bot table and on every trade row (t81)
+  const BOTN = { momentum: "Momentum", migration: "Migration", bluechip: "Bluechip", volspike: "Volspike", copy: "Copy", unknown: "Unknown" };
+  const BOTK = b => BOTN[b] ? b : b ? "migration" : "unknown";
+  const BB = (b, full) => { const k = BOTK(b); return `<span class="bb b-${k}">${full ? BOTN[k] : k === "unknown" ? "UNK" : SRC(k)}</span>`; };
   const hm = ts => new Date(ts * 1000).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", timeZone: TZN });
   function pxHtml(p) {               // $0.0₃2468 style for tiny memecoin prices
     if (p == null) return "–";
@@ -167,7 +171,7 @@
     const a = A.app.agents, d = A.d;
     q("#mrunning").textContent = (A.app.running ?? 0) + " running";
     const sc = a.scanner, pools = sc.pools || [];
-    const prow = p => `<div class="pool"><b>${h(p.coin)}</b><span class="mgray">${age(p.created)}</span><span>${kmoney(p.liq)}</span><span class="t ${p.source === "migration" ? "mig" : p.source === "copy" ? "cpy" : "mom"}">${SRC(p.source)}</span>${p.pass ? '<span class="mgreen">✓</span>' : ""}</div>`;
+    const prow = p => `<div class="pool"><b>${h(p.coin)}</b><span class="mgray">${age(p.created)}</span><span>${kmoney(p.liq)}</span>${BB(p.source)}${p.pass ? '<span class="mgreen">✓</span>' : ""}</div>`;
     const list = pools.map(prow).join("");
     card("scanner", "s" + pools.map(p => p.mint).join() + sc.n,
       `<h4>${ICON.scanner}Scanner</h4><div class="radar"></div><div class="big">+${sc.n} pools</div><div class="sm">tonight · mig ${sc.mig} / mom ${sc.mom}${sc.blu ? ` / blu ${sc.blu}` : ""}${sc.vol ? ` / vol ${sc.vol}` : ""}${sc.cpy ? ` / copy ${sc.cpy}` : ""}</div>` +
@@ -203,6 +207,25 @@
     }
   }
 
+  // ---------- live P&L by bot (t81)
+  function bots() {
+    const B = A.app.bots, box = q("#mbots");
+    if (!B) { box.innerHTML = `<div class="mnone">P&amp;L by bot appears after the next feed update</div>`; return; }
+    const tone = v => v == null || Math.abs(v) < 0.005 ? "mgray" : v > 0 ? "mgreen" : "mred";
+    const cell = r => `<div class="c"><b class="${tone(r.upnl_usd)}">${r.open_n ? money(r.upnl_usd, true) : "–"}</b><small class="${tone(r.upnl_pct)}">${r.upnl_pct == null ? r.open_n + " open" : pc(r.upnl_pct) + " · " + r.open_n + " open"}</small></div>` +
+      `<div class="c"><b class="${tone(r.rpnl_usd)}">${r.closed ? money(r.rpnl_usd, true) : "–"}</b><small class="mgray">${r.closed} closed</small></div>` +
+      `<div class="c wl"><b><span class="mgreen">${r.wins}</span><span class="mgray">/</span><span class="mred">${r.losses}</span></b><small class="mgray">W/L</small></div>`;
+    const row = r => `<div class="brow">${BB(r.bot, true)}${cell(r)}</div>` +
+      (r.open.length ? `<div class="bopen">${r.open.map(o => `<button class="bchip" data-m="${h(o.mint)}">${h(o.coin)} <span class="${tone(o.pnl_pct)}">${pc(o.pnl_pct)}</span> <span class="${tone(o.pnl_usd)}">${money(o.pnl_usd, true)}</span></button>`).join("")}</div>` : "");
+    const t = B.total;
+    q("#mbotsn").innerHTML = `<span class="${tone(t.net_usd)}">${money(t.net_usd, true)}</span> net`;
+    box.innerHTML = `<div class="bhead"><span>Bot</span><span>Unrealized</span><span>Realized today</span><span>W/L</span></div>` +
+      B.rows.map(row).join("") +
+      `<div class="brow tot"><span class="bb b-total">Total</span>${cell(t)}</div>` +
+      `<div class="bnote">Today = since ${hm(B.since)} ET · live prices on the ${Feed.remote ? "15s" : "3s"} feed</div>`;
+    box.querySelectorAll(".bchip").forEach(el => el.onclick = () => openCoin(el.dataset.m));
+  }
+
   // ---------- activity feed
   function feed() {
     const rows = A.app.feed || [], box = q("#mlist");
@@ -213,7 +236,7 @@
       const isNew = !A.first && !A.seen.has(r.id);
       const col = r.kind === "bought" ? "" : r.kind === "killed" ? "mgray" : (r.usd || 0) >= 0 ? "mgreen" : "mred";
       const amt = r.kind === "killed" ? "" : r.kind === "bought" ? money(r.usd) : money(r.usd, true);
-      return `<div class="mrow ${isNew ? "new" : ""}" data-m="${h(r.mint)}">${logo(r.img, r.coin)}<div class="mid"><div class="t1">${verb[r.kind] || r.kind} ${h(r.coin)}</div><div class="t2">${h(r.agent)} · ${h(r.reason)} · ${age(r.ts)} ago</div></div><div class="amt ${col}">${amt}<small>${h(r.sub || "")}</small></div></div>`;
+      return `<div class="mrow ${isNew ? "new" : ""}" data-m="${h(r.mint)}">${logo(r.img, r.coin)}<div class="mid"><div class="t1">${r.kind === "killed" ? "" : BB(r.bot) + " "}${verb[r.kind] || r.kind} ${h(r.coin)}</div><div class="t2">${h(r.agent)} · ${h(r.reason)} · ${age(r.ts)} ago</div></div><div class="amt ${col}">${amt}<small>${h(r.sub || "")}</small></div></div>`;
     }).join("");
     rows.forEach(r => A.seen.add(r.id));
     box.querySelectorAll(".mrow").forEach(el => el.onclick = () => openCoin(el.dataset.m));
@@ -233,7 +256,7 @@
     q("#mcoinsn").textContent = cs.length ? cs.length + " watched" : "";
     if (!cs.length) { box.innerHTML = `<div class="mnone" style="flex:1">No coins on watch yet</div>`; return; }
     const ST = { holding: "holding", waiting: "waiting room", audited: "audited", passed: "passed scanner", watching: "watching" };
-    box.innerHTML = cs.map(c => `<button class="mcc" data-m="${h(c.mint)}"><div class="r1">${logo(c.img, c.symbol, "sm")}<div style="min-width:0"><div class="sym">${h(c.symbol)}</div><div class="st">${ST[c.status] || c.status} · ${SRC(c.source)}</div></div></div>${spark(c.spark)}<div class="r2"><span>${kmoney(c.mcap)}</span><span class="${(c.m5 ?? 0) >= 0 ? "mgreen" : "mred"}">${c.m5 == null ? "–" : pc(c.m5)} <span class="mgray">5m</span></span></div></button>`).join("");
+    box.innerHTML = cs.map(c => `<button class="mcc" data-m="${h(c.mint)}"><div class="r1">${logo(c.img, c.symbol, "sm")}<div style="min-width:0"><div class="sym">${h(c.symbol)}</div><div class="st">${c.status === "holding" ? BB(c.bot || c.source) + " " : ""}${ST[c.status] || c.status}${c.status === "holding" ? "" : " · " + SRC(c.source)}</div></div></div>${spark(c.spark)}<div class="r2"><span>${kmoney(c.mcap)}</span><span class="${(c.m5 ?? 0) >= 0 ? "mgreen" : "mred"}">${c.m5 == null ? "–" : pc(c.m5)} <span class="mgray">5m</span></span></div></button>`).join("");
     box.querySelectorAll(".mcc").forEach(el => el.onclick = () => openCoin(el.dataset.m));
   }
 
@@ -278,7 +301,7 @@
     q("#mcstats").innerHTML = st("Mcap", kmoney(c.mcap)) + st("Liquidity", kmoney(c.liq)) + st("Holders", knum(c.holders)) + st("24h vol", kmoney(c.v24));
     const stopPct = p ? (100 * (p.exit_line / p.entry_price - 1)) : null;
     q("#mccards").innerHTML = p
-      ? `<div class="mcardx"><div class="k">Your position</div><div class="rows"><div><b>${money(p.size_usd)}</b><span>in</span></div><div><b>${money(p.value_usd)}</b><span>value</span></div><div><b class="${p.pnl_usd >= 0 ? "mgreen" : "mred"}">${money(p.pnl_usd, true)}</b><span>P&amp;L</span></div></div></div>
+      ? `<div class="mcardx"><div class="k">Your position ${BB(c.bot || c.source, true)}</div><div class="rows"><div><b>${money(p.size_usd)}</b><span>in</span></div><div><b>${money(p.value_usd)}</b><span>value</span></div><div><b class="${p.pnl_usd >= 0 ? "mgreen" : "mred"}">${money(p.pnl_usd, true)}</b><span>P&amp;L</span></div></div></div>
          <div class="mcardx"><h5><span class="blink ${p.trail_active ? "" : "off"}"></span>Risk · ${p.trail_active ? "trailing stop" : "hard stop"}</h5><div class="rows"><div><b class="morange">${pxHtml(p.exit_line)}</b><span>exit line</span></div><div><b>${pc(stopPct)}</b><span>vs entry</span></div><div><b>${p.trail_active ? "on" : pxHtml(p.trail_start_price)}</b><span>${p.trail_active ? "trail" : "trail arms at"}</span></div></div></div>`
       : `<div class="mcardx"><div class="k">Your position</div><div style="margin-top:6px;font-weight:600">Not held</div><div class="mgray" style="font-size:13px">${h({ waiting: "In the waiting room", audited: "Audited", passed: "Passed the scanner", watching: "Being scanned" }[c.status] || "Being watched")} · the desk buys only after Auditor and Analyst pass it.</div></div>`;
     priceLines(c);
@@ -420,7 +443,7 @@
     const d = e.detail; if (!d || !d.app) return;
     A.d = d; A.app = d.app; note();
     const mm = q("#mmode"); mm.textContent = d.mode + (d.exec ? " · " + String(d.exec).toUpperCase() : ""); mm.className = "mmode" + (d.mode === "LIVE" ? " live" : "");
-    eqData(); hero(); agents(); feed(); coins(); toasts(); celebrate();
+    eqData(); hero(); bots(); agents(); feed(); coins(); toasts(); celebrate();
     if (A.open) renderCoin(false);
     const w = d.wallet || {};
     q("#mfoot").textContent = `bot wallet ${w.address || "n/a"} · updated ${hm(d.updated_at)} ET · ${Feed.remote ? "public feed · 15s snapshots" : "local feed · 3s"}`;
