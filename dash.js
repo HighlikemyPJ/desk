@@ -393,7 +393,7 @@ function termLine(ev, instant) {
   const t = $("#term"), l = document.createElement("div"); l.className = "l";
   const head = `<span class="t">[${hms(ev.ts)}]</span> <span class="a">${(ev.from + "        ").slice(0, 9)}</span>` +
                (ev.src ? ` <span class="src ${ev.src.toLowerCase()}">[${esc(ev.src)}]</span>` : "");
-  const tag = `<span class="${ev.tone}">${esc(ev.tag)}</span>`;
+  const tag = `<span class="${ev.tone}">${esc(ev.src ? ev.tag.replace(" " + ev.src, "") : ev.tag)}</span>`;
   const body = (ev.coin ? ev.coin + " · " : "") + ev.text + (ev.to ? "  → " + ev.to : "");
   const link = ev.url ? ` <a class="lnk" href="${esc(ev.url)}" target="_blank" rel="noopener">[tx]</a>` : "";
   l.innerHTML = head + " " + tag + " <span class=\"body\"></span>";
