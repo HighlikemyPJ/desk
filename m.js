@@ -214,7 +214,7 @@
     const tone = v => v == null || Math.abs(v) < 0.005 ? "mgray" : v > 0 ? "mgreen" : "mred";
     const cell = r => `<div class="c"><b class="${tone(r.upnl_usd)}">${r.open_n ? money(r.upnl_usd, true) : "–"}</b><small class="${tone(r.upnl_pct)}">${r.upnl_pct == null ? r.open_n + " open" : pc(r.upnl_pct) + " · " + r.open_n + " open"}</small></div>` +
       `<div class="c"><b class="${tone(r.rpnl_usd)}">${r.closed ? money(r.rpnl_usd, true) : "–"}</b><small class="mgray">${r.closed} closed</small></div>` +
-      `<div class="c wl"><b><span class="mgreen">${r.wins}</span><span class="mgray">/</span><span class="mred">${r.losses}</span></b><small class="mgray">W/L</small></div>`;
+      `<div class="c wl"><b><span class="${r.wins ? "mgreen" : "mgray"}">${r.wins}</span><span class="mgray">/</span><span class="${r.losses ? "mred" : "mgray"}">${r.losses}</span></b><small class="mgray">W/L</small></div>`;
     const row = r => `<div class="brow">${BB(r.bot, true)}${cell(r)}</div>` +
       (r.open.length ? `<div class="bopen">${r.open.map(o => `<button class="bchip" data-m="${h(o.mint)}">${h(o.coin)} <span class="${tone(o.pnl_pct)}">${pc(o.pnl_pct)}</span> <span class="${tone(o.pnl_usd)}">${money(o.pnl_usd, true)}</span></button>`).join("")}</div>` : "");
     const t = B.total;
