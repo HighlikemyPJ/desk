@@ -19,8 +19,13 @@
 <div id="err" class="err" hidden></div>
 <section class="cards" id="cards"></section>
 <section class="panel graphp">
-  <div class="ph"><span>AGENT FLOW · live handoffs</span><span id="flowinfo" class="dim"></span></div>
-  <div class="graphwrap"><canvas id="graph"></canvas><div id="bubbles"></div></div>
+  <div class="ph"><span>TRADING FLOOR · live handoffs</span><span id="flowinfo" class="dim"></span></div>
+  <div class="graphwrap"><canvas id="graph"></canvas><div id="bubbles"></div>
+    <div class="ov ticker" id="ticker"></div>
+    <div class="ov fomo" aria-hidden="true">FOMO</div>
+    <div class="ov minichart"><div class="mh" id="minih">COIN</div><canvas id="minic"></canvas></div>
+    <div class="ov uplink" id="uplink"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M5 8 A9 9 0 0 0 16 19 Z"/><path d="M10.5 13.5 L15 9"/><path d="M15 5 A4 4 0 0 1 19 9"/><path d="M15 1.5 A7.5 7.5 0 0 1 22.5 9"/><path d="M8 19 L6 22.5 H13"/></svg><span>UPLINK</span></div>
+  </div>
 </section>
 <section class="panel balp">
   <div class="ph"><span id="ballabel">BALANCE</span><span id="balsub" class="dim"></span></div>
@@ -34,8 +39,9 @@
     <div id="positions"></div>
   </div>
   <div class="panel termp">
-    <div class="ph"><span>terminal.py</span><span class="dim" id="termcount"></span></div>
+    <div class="ph"><span class="fname">terminal.py</span><span class="dim" id="termcount"></span></div>
     <div class="term" id="term"></div>
+    <div class="tfoot"><div class="tbar"><i id="syncbar"></i></div><span id="synctxt" class="dim">NEXT SYNC</span><span id="tags" class="tags"></span></div>
   </div>
 </section>
 <footer class="foot dim" id="foot"></footer>

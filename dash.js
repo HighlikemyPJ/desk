@@ -94,8 +94,8 @@ function cards(d) {
 
 // ---------- isometric trading floor: racks, desks, one pixel bot per agent, packets on floor wires
 const LAY = {   // [x, d] in iso units: screen X = x*u/2, screen Y = d*u/4
-  wide: { scanner: [-6, 9], auditor: [-3, 5.5], analyst: [-0.5, 9.5], executor: [2.5, 5.5], risk: [5, 9.5], telegram: [7.5, 5.5] },
-  tall: { scanner: [-2.6, 4], auditor: [2.6, 7], analyst: [-2.6, 10.5], executor: [2.6, 13.5], risk: [-2.6, 17], telegram: [2.6, 20] },
+  wide: { scanner: [-6, 5.5], auditor: [-3, 9.5], analyst: [-0.5, 5.5], executor: [2.5, 9.5], risk: [5, 5.5], telegram: [7.5, 9.5] },
+  tall: { scanner: [-2.6, 4], auditor: [2.6, 8.2], analyst: [-2.6, 12.4], executor: [2.6, 16.6], risk: [-2.6, 20.8], telegram: [2.6, 25] },
 };
 const WIRES = [["scanner", "auditor"], ["auditor", "analyst"], ["analyst", "executor"], ["executor", "risk"], ["executor", "telegram"], ["risk", "telegram"]];
 const NEXT = { scanner: "auditor", auditor: "analyst", analyst: "executor", executor: "risk", risk: "telegram" };
@@ -109,7 +109,7 @@ function layout(w, h) {
   const tall = w < 560, L = tall ? LAY.tall : LAY.wide, pts = Object.values(L);
   const x0 = Math.min(...pts.map(p => p[0])), x1 = Math.max(...pts.map(p => p[0]));
   const d0 = Math.min(...pts.map(p => p[1])), d1 = Math.max(...pts.map(p => p[1]));
-  const padX = tall ? 58 : 76, top = tall ? 50 : 62, bot = tall ? 112 : 46, lab = 30;
+  const padX = tall ? 58 : 80, top = tall ? 50 : 62, bot = tall ? 112 : 62, lab = 30;
   const span = (d1 - d0) / 4 + 1.15;
   const u = Math.max(28, Math.min(2 * (w - 2 * padX) / (x1 - x0), (h - top - bot - lab) / span, tall ? 70 : 100));
   const extra = Math.max(0, (h - top - bot - lab - span * u) / 2);
@@ -205,7 +205,7 @@ function drawScene(now) {
   });
   // bots + desks, back to front
   const order = BOTS.slice().sort((a, b) => G.lay[a][1] - G.lay[b][1]);
-  const p = Math.max(2, Math.round(u / 21));
+  const p = Math.max(2, Math.round(u / (G.tall ? 17 : 14)));
   for (const k of order) {
     const [i, j] = toIJ(G.lay[k]), col = ACOL[k];
     const fl = G.flash[k] ? Math.max(0, 1 - (now - G.flash[k]) / 1400) : 0;
@@ -215,11 +215,11 @@ function drawScene(now) {
       x.beginPath(); x.ellipse(fx, fy, u * (.6 + (1 - fl) * .5), u * (.3 + (1 - fl) * .25), 0, 0, 7); x.stroke(); x.restore(); }
     const deskH = u * .3, [dx, dy] = IJ(i + .1, j + .1);
     const bob = RM ? 0 : Math.sin(t * 2.2 + i * 1.7) * p * .6;
-    const feetY = dy - deskH + 3 * p - jp * u * .32 + bob, bx = dx - u * .12;
+    const feetY = dy - deskH + 2 * p - jp * u * .32 + bob, bx = dx - u * .2;
     x.save(); if (down) x.globalAlpha = .45; drawBot(x, k, bx, feetY, p, now, fl); x.restore();
     box(x, i + .1, j + .1, .42, .3, deskH, "#1b1320", "#0f0a12", "#09060b", col + "aa");
     // monitor on the right of the desk, screen facing front-left
-    const mh = u * .36, m0 = IJ(i - .05, j - .05), m1 = IJ(i + .4, j - .05);
+    const mh = u * .34, m0 = IJ(i + .2, j - .15), m1 = IJ(i + .52, j - .15);
     const S = [[m0[0], m0[1] - deskH], [m1[0], m1[1] - deskH], [m1[0], m1[1] - deskH - mh], [m0[0], m0[1] - deskH - mh]];
     quad(x, S, "#0a070c", col);
     const fk = down ? .08 : .22 + .1 * Math.sin(t * 9 + i * 3) * Math.sin(t * 2.3 + j) + fl * .6;
@@ -266,6 +266,7 @@ function bubble(ev) {
   const box = $("#bubbles"); box.querySelectorAll(".bubble").forEach(o => { if (o.dataset.from === k) o.remove(); });
   b.dataset.from = k; box.appendChild(b); placeBubbles();
   setTimeout(() => { if (b.isConnected) b.classList.add("old"); }, 7000);
+  setTimeout(() => { if (b.isConnected && G.tall) b.remove(); }, 15000);
 }
 let qTimer = 0;
 function pump(now) {

@@ -22,25 +22,34 @@ a { color: var(--c); text-decoration: none; }
 .ph.sub { border-top:1px solid var(--pinkd); }
 .cards { display:grid; grid-template-columns:repeat(6, minmax(0,1fr)); gap:8px; margin-top:10px; }
 .card { border:1px solid var(--pink); background:#0a0a0a; padding:6px 8px; min-width:0; display:flex; flex-direction:column; gap:2px; }
-.card .h { display:flex; justify-content:space-between; align-items:center; font-size:20px; color:#fff; }
-.card .h b { font-weight:normal; letter-spacing:1px; }
+.card { border-color:color-mix(in srgb, var(--ac, var(--pink)) 70%, transparent); box-shadow:inset 0 0 18px color-mix(in srgb, var(--ac, var(--pink)) 10%, transparent); }
+.card .h { display:flex; align-items:center; gap:6px; font-size:20px; color:#fff; }
+.card .h b { font-weight:normal; letter-spacing:1px; flex:1; min-width:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.card .ic { width:22px; height:22px; flex:none; color:var(--ac); filter:drop-shadow(0 0 4px var(--ac)); }
+.card .ic svg { width:100%; height:100%; display:block; }
+.card .st { display:flex; align-items:center; white-space:nowrap; }
+.card .big { display:flex; align-items:baseline; gap:6px; }
+.card .mini { display:flex; align-items:center; gap:6px; }
+.card .sn { font-size:16px; color:var(--ac); min-width:38px; } .card .sn.zero { color:var(--dim); }
+.card .mini canvas { flex:1; min-width:0; }
 .dot { width:9px; height:9px; border-radius:50%; display:inline-block; background:var(--dim); margin-right:6px; }
 .dot.running { background:var(--g); box-shadow:0 0 8px var(--g); animation:pulse 1.6s infinite; }
 .dot.down { background:var(--r); box-shadow:0 0 8px var(--r); }
 .dot.paused { background:var(--y); }
 @keyframes pulse { 50% { opacity:.4; } }
 .card .st { font-size:15px; color:var(--dim); text-transform:uppercase; }
-.card .n { font-size:40px; line-height:1; color:var(--g); text-shadow:0 0 10px rgba(57,255,106,.5); }
+.card .n { font-size:40px; line-height:1; color:var(--ac, var(--g)); text-shadow:0 0 10px color-mix(in srgb, var(--ac, var(--g)) 55%, transparent); }
 .card .n.zero { color:#fff; text-shadow:none; }
 .card .u { font-size:15px; color:var(--dim); }
-.card canvas { width:100%; height:26px; display:block; }
+.card canvas { width:100%; height:24px; display:block; }
 .card .q { font-size:16px; color:var(--fg); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; border-top:1px dashed var(--pinkd); padding-top:3px; }
 .card .q.bad { color:#ff8fa0; } .card .q.good { color:#9dffb6; }
 .card .sub2 { font-size:15px; color:var(--dim); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-.graphwrap { position:relative; height:360px; }
+.graphwrap { position:relative; height:400px; overflow:hidden; }
 #graph { width:100%; height:100%; display:block; }
 #bubbles { position:absolute; inset:0; pointer-events:none; }
-.bubble { position:absolute; max-width:min(260px, 70vw); background:#000; border:1px solid var(--c); color:#fff; padding:3px 7px; font-size:16px; transform:translate(-50%, -100%); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; box-shadow:0 0 10px rgba(0,229,255,.35); transition:opacity .6s; }
+.bubble { position:absolute; z-index:3; max-width:min(260px, 62vw); background:#000; border:1px solid var(--c); color:#fff; padding:3px 7px; font-size:16px; transform:translate(-50%, -100%); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; box-shadow:0 0 10px rgba(0,229,255,.35); transition:opacity .6s; }
+.bubble.old { opacity:.5; }
 .bubble.bad { border-color:var(--r); box-shadow:0 0 10px rgba(255,51,85,.4); }
 .bubble.good { border-color:var(--g); box-shadow:0 0 10px rgba(57,255,106,.35); }
 .bubble b { color:var(--y); font-weight:normal; margin-right:4px; }
@@ -64,6 +73,35 @@ th { color:var(--dim); font-weight:normal; }
 .term .cur::after { content:"█"; color:var(--g); animation:pulse 1s steps(1) infinite; }
 .term .lnk { color:var(--c); }
 .foot { padding:8px 2px 0; font-size:15px; }
+.ph .fname { text-transform:none; color:var(--g); }
+.tfoot { display:flex; align-items:center; gap:8px; padding:5px 8px; border-top:1px solid var(--pinkd); font-size:15px; flex-wrap:wrap; }
+.tbar { width:110px; height:8px; border:1px solid var(--c); padding:1px; }
+.tbar i { display:block; height:100%; width:0; background:var(--c); box-shadow:0 0 6px var(--c); transition:width .25s linear; }
+.tags { display:flex; gap:4px; flex-wrap:wrap; margin-left:auto; }
+.tag { padding:0 4px; border:1px solid #2a1c30; color:#5d5262; }
+.tag.on { border-color:color-mix(in srgb, var(--ac) 45%, transparent); color:color-mix(in srgb, var(--ac) 70%, #888); }
+.tag.hot { border-color:var(--ac); color:#000; background:var(--ac); box-shadow:0 0 8px var(--ac); }
+.tag.down { border-color:var(--r); color:var(--r); }
+/* trading floor overlays */
+.ov { position:absolute; z-index:2; pointer-events:none; }
+.ticker { left:8px; top:8px; width:min(52%, 440px); height:26px; overflow:hidden; border:1px solid var(--g); background:rgba(0,0,0,.78); color:var(--g); font-size:17px; line-height:24px; box-shadow:0 0 10px rgba(57,255,106,.25); }
+.ticker .tt { display:flex; width:max-content; animation:tick 22s linear infinite; }
+.ticker .tt span { padding-right:40px; white-space:nowrap; }
+.ticker .tt0 { padding:0 8px; color:var(--dim); }
+@keyframes tick { to { transform:translateX(-50%); } }
+.fomo { right:10px; top:6px; font-size:40px; line-height:1; letter-spacing:4px; color:#ffd6ff; padding:0 8px 2px; border:2px solid var(--pink); border-radius:6px;
+  text-shadow:0 0 6px var(--pink), 0 0 16px var(--pink), 0 0 30px var(--pink); box-shadow:0 0 12px var(--pink), inset 0 0 12px rgba(255,0,255,.5); animation:neon 5s infinite; }
+@keyframes neon { 0%,18%,22%,62%,64%,100% { opacity:1; } 20%,63% { opacity:.35; } }
+.minichart { left:8px; bottom:8px; width:170px; height:84px; border:1px solid var(--c); background:rgba(0,0,0,.8); box-shadow:0 0 10px rgba(0,229,255,.25); display:flex; flex-direction:column; }
+.minichart .mh { font-size:15px; color:#fff; padding:1px 6px; border-bottom:1px solid rgba(0,229,255,.35); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.minichart .mh span { color:var(--c); }
+.minichart canvas { flex:1; width:100%; min-height:0; display:block; }
+.uplink { right:10px; bottom:8px; display:flex; align-items:center; gap:4px; color:var(--c); font-size:16px; letter-spacing:1px; padding:2px 6px; border:1px solid rgba(0,229,255,.5); background:rgba(0,0,0,.7); }
+.uplink svg { width:24px; height:24px; }
+.uplink.pulse { animation:uplink 1.2s ease-out; }
+@keyframes uplink { 0% { color:#fff; box-shadow:0 0 0 0 rgba(0,229,255,.9); border-color:#fff; } 100% { box-shadow:0 0 0 18px rgba(0,229,255,0); } }
+@media (min-width: 761px) { .uplink { top:58px; bottom:auto; } }
+@media (prefers-reduced-motion: reduce) { .ticker .tt, .fomo { animation:none; } }
 @media (max-width: 1100px) { .cards { grid-template-columns:repeat(3, minmax(0,1fr)); } }
 @media (max-width: 760px) {
   body { font-size:17px; padding-left:6px; padding-right:6px; }
@@ -71,7 +109,11 @@ th { color:var(--dim); font-weight:normal; }
   .meta { width:100%; justify-content:space-between; }
   .cards { grid-template-columns:repeat(2, minmax(0,1fr)); gap:6px; }
   .card .n { font-size:34px; }
-  .graphwrap { height:300px; }
+  .graphwrap { height:580px; }
+  .fomo { font-size:28px; letter-spacing:2px; right:8px; top:5px; }
+  .ticker { width:calc(100% - 120px); }
+  .minichart { width:150px; height:78px; }
+  .tbar { width:80px; }
   .bottom { grid-template-columns:1fr; gap:0; }
   .bignum { font-size:40px; top:auto; bottom:14px; }
   .balwrap { height:180px; }
@@ -91,8 +133,8 @@ th { color:var(--dim); font-weight:normal; }
   .coinp { grid-column:1 / -1; grid-row:6; display:grid; grid-template-columns:minmax(0,1.55fr) minmax(0,1fr); column-gap:10px; }
   .coinp > .ph:first-child { grid-column:1; grid-row:1; } .coinp .coinwrap { grid-column:1; grid-row:2 / span 2; }
   .coinp .ph.sub { grid-column:2; grid-row:1; border-top:0; border-left:1px solid var(--pinkd); } .coinp #positions { grid-column:2; grid-row:2; border-left:1px solid var(--pinkd); }
-  .graphwrap { height:260px; }
-  .balwrap { height:160px; }
+  .graphwrap { height:380px; }
+  .balwrap { height:150px; }
   .card .n { font-size:36px; }
   .cards { margin-top:8px; }
 }
