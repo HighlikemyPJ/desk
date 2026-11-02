@@ -196,16 +196,28 @@
       `<div class="pills"><span class="red">${rk.hard_stop === false ? "floor" : "stop"} -${rk.stop_pct}%</span>${rk.signals ? `<span class="gr">signal exits</span>` : ""}<span class="gr">trail ${rk.trail_pct}%</span></div>`);
     const cp = a.copy;
     if (cp) {
+      // t99: copy desk = Watcher -> Copier (30s delay) -> Executor -> Risk
       const st = !cp.on ? "off" : cp.active ? "watching" : "off in LIVE";
-      const wl = (cp.wallets || []).slice(0, 4).map(w => `<div class="pool"><b>${h(w.handle ? "@" + w.handle : w.w)}</b><span class="mgray">${w.handle ? h(w.w) : "on-chain"}</span><span>${w.wr != null ? Math.round(w.wr * 100) + "% win" : "FOMO lb"}</span><span class="t cpy">${Math.round(w.score || 0)}</span></div>`).join("");
-      const ls = cp.last ? `<div class="sm">last buy ${h(cp.last.coin)} by ${h(cp.last.w)} · ${age(cp.last.ts)} ago${cp.last.acted === "signal" ? ' · <span class="mgreen">copied</span>' : ""}</div>` : `<div class="sm">no tracked buys yet</div>`;
+      const ro = cp.roles || {}, W = ro.watcher || {}, C = ro.copier || {}, E = ro.executor || {}, R = ro.risk || {};
+      const wl = (cp.wallets || []).slice(0, 6).map(w => `<span class="cw">${h(w.handle ? (w.handle[0] === "@" ? w.handle : "@" + w.handle) : w.w)}${w.wr != null ? ` <i>${Math.round(w.wr * 100)}%</i>` : ""}</span>`).join("");
+      const wlast = W.last ? `${W.last.side === "sell" ? `<span class="mred">sold</span>${W.last.frac != null && W.last.frac < 0.995 ? " " + Math.round(W.last.frac * 100) + "%" : ""}` : `<span class="mgreen">bought</span>`} ${h(W.last.coin || "")} · ${h(W.last.who)} · ${age(W.last.ts)} ago` : "no source trades seen yet";
+      const pend = (C.pending || []).map(p => `<div class="sm">${h(p.coin || "")} · ${h(p.who)} · <b class="cdown" data-due="${p.due_ts}">${Math.max(0, Math.round(p.due_ts - Date.now() / 1000))}s</b></div>`).join("");
+      const clast = C.last ? `<div class="sm mgray">last: ${h(C.last.coin || "")} ${h(C.last.state)}${C.last.note ? " · " + h(C.last.note) : ""}</div>` : "";
+      const f = (E.fills || [])[0];
+      const fill = f ? `${h(f.coin || "")} · ${f.lag_s}s after ${h(f.who || "source")}${f.slip_pct != null ? ` · ${pc(f.slip_pct)} vs their fill` : ""}` : "no copied fills yet";
       card("copy", "c" + JSON.stringify(cp),
         `<h4>${ICON.copy}Copy</h4><div class="big" style="display:flex;align-items:center;gap:8px"><span class="blink ${cp.active ? "" : "off"}" style="${cp.active ? "background:#2EE6C9" : ""}"></span>${st}</div>` +
-        `<div class="sm">${cp.n} wallets · ${cp.trades} copy trade${cp.trades === 1 ? "" : "s"} tonight · ${cp.open}/${cp.max_open} open</div>` + ls +
-        (wl ? `<div class="pools">${wl}</div>` : `<div class="empty">finding wallets…</div>`) +
-        `<div class="pills"><span class="gr">TP +${cp.tp}%</span><span class="gr">max ${cp.hold}m</span></div>`);
+        `<div class="sm">${cp.n} wallets · ${cp.trades} copy trade${cp.trades === 1 ? "" : "s"} tonight · ${cp.open}/${cp.max_open} open</div>` +
+        (wl ? `<div class="cws">${wl}</div>` : `<div class="empty">no wallets pinned</div>`) +
+        `<div class="croles">` +
+        `<div class="crole"><b>Watcher</b><div class="sm">${wlast}</div></div>` +
+        `<div class="crole"><b>Copier</b> <span class="mgray">${C.delay_s ?? 30}s delay</span>${pend || `<div class="sm">nothing waiting</div>`}${clast}</div>` +
+        `<div class="crole"><b>Executor</b><div class="sm">${fill}</div></div>` +
+        `<div class="crole"><b>Risk</b><div class="pills">${(R.rules || []).map(x => `<span class="gr">${h(x)}</span>`).join("")}</div></div>` +
+        `</div>`);
     }
   }
+  setInterval(() => document.querySelectorAll(".cdown[data-due]").forEach(e => { e.textContent = Math.max(0, Math.round(+e.dataset.due - Date.now() / 1000)) + "s"; }), 1000);
 
   // ---------- Boss (t85): final say on every buy
   const BOSSB = `<span class="bb b-boss">♛ Boss</span>`;
@@ -259,12 +271,12 @@
     const rows = A.app.feed || [], box = q("#mlist");
     q("#mfeedn").textContent = rows.length ? rows.length + " recent" : "";
     if (!rows.length) { box.innerHTML = `<div class="mnone">No buys, sells or kills yet</div>`; return; }
-    const verb = { bought: "Bought", sold: "Sold", stopped: "Stopped", killed: "Killed" };
+    const verb = { bought: "Bought", sold: "Sold", stopped: "Stopped", killed: "Killed", locked: "Locked" };
     box.innerHTML = rows.map(r => {
       const isNew = !A.first && !A.seen.has(r.id);
       const col = r.kind === "bought" ? "" : r.kind === "killed" ? "mgray" : (r.usd || 0) >= 0 ? "mgreen" : "mred";
-      const amt = r.kind === "killed" ? "" : r.kind === "bought" ? money(r.usd) : money(r.usd, true);
-      return `<div class="mrow ${isNew ? "new" : ""}" data-m="${h(r.mint)}">${logo(r.img, r.coin)}<div class="mid"><div class="t1">${r.kind === "killed" ? "" : BB(r.bot) + " "}${verb[r.kind] || r.kind} ${h(r.coin)}</div><div class="t2">${h(r.agent)} · ${h(r.reason)} · ${age(r.ts)} ago</div></div><div class="amt ${col}">${amt}<small>${h(r.sub || "")}</small></div></div>`;
+      const amt = r.kind === "killed" || r.usd == null ? "" : r.kind === "bought" ? money(r.usd) : money(r.usd, true);
+      return `<div class="mrow ${isNew ? "new" : ""}" data-m="${h(r.mint)}">${logo(r.img, r.coin)}<div class="mid"><div class="t1">${r.kind === "killed" ? "" : BB(r.bot) + " "}${h(r.verb || verb[r.kind] || r.kind)} ${h(r.coin)}${r.bot === "copy" && r.reason ? ` <span class="mgray">| ${h(r.reason)}</span>` : ""}</div><div class="t2">${h(r.agent)}${r.bot === "copy" ? "" : " · " + h(r.reason)} · ${age(r.ts)} ago</div></div><div class="amt ${col}">${amt}<small>${h(r.sub || "")}</small></div></div>`;
     }).join("");
     rows.forEach(r => A.seen.add(r.id));
     box.querySelectorAll(".mrow").forEach(el => el.onclick = () => openCoin(el.dataset.m));

@@ -242,3 +242,14 @@ html { background:#000; }
 .bdm { min-width:0; } .bdm .t1 { font-weight:600; font-size:13px; } .bdm .t2 { color:var(--gray); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 .bact { font-size:11px; font-weight:700; text-align:center; padding:3px 0; border-radius:7px; }
 .bact.ok { background:rgba(0,230,118,.14); color:#00E676; } .bact.no { background:rgba(255,77,94,.16); color:#FF4D5E; } .bact.rs { background:rgba(255,159,10,.16); color:#FF9F0A; }
+
+/* t99 copy desk roles */
+.cws { display:flex; flex-wrap:wrap; gap:4px; margin:4px 0; }
+.cw { font-size:11px; padding:1px 6px; border-radius:6px; background:rgba(46,230,201,.12); color:#2ee6c9; white-space:nowrap; }
+.cw i { font-style:normal; color:#9fe; opacity:.8; }
+.croles { display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-top:6px; }
+.crole { background:rgba(255,255,255,.04); border-radius:8px; padding:5px 7px; min-width:0; }
+.crole > b { font-size:11px; color:#fff; }
+.crole .sm { overflow:hidden; text-overflow:ellipsis; }
+.crole .pills { margin-top:3px; }
+.cdown { color:#2ee6c9; }
