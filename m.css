@@ -3,6 +3,7 @@ body.v-app { --g3:#00E676; --r3:#FF4D5E; --o3:#FF9F0A; --b3:#3D8BFF; --card:#1A1
   background:#000; color:#fff; border:0; padding:0; font:15px/1.35 -apple-system, BlinkMacSystemFont, "SF Pro Text", Inter, "Segoe UI", Roboto, system-ui, sans-serif;
   -webkit-font-smoothing:antialiased; min-height:100vh; }
 body.v-app #floor { display:none; }
+body.v-app, body.v-floor { display:block; }
 body.v-floor #app, body.v-floor .mcoin, body.v-floor .msheet, body.v-floor .mconfetti { display:none !important; }
 body.v-floor { padding-bottom:70px; }
 .mapp { max-width:1180px; margin:0 auto; padding:max(14px, env(safe-area-inset-top)) 18px 96px; }
@@ -37,6 +38,7 @@ body.v-floor { padding-bottom:70px; }
 @media (min-width: 960px) { .mchart { height:280px; } }
 .mchart canvas { width:100%; height:100%; display:block; }
 .mempty { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; color:var(--gray); font-size:14px; }
+.mempty[hidden] { display:none; }
 .mmarks { position:absolute; inset:0; pointer-events:none; }
 .mpill { position:absolute; transform:translate(-50%,-100%); font-size:11px; font-weight:700; padding:3px 7px; border-radius:99px; white-space:nowrap; font-variant-numeric:tabular-nums; }
 .mpill.win { background:var(--g3); color:#00210f; }
@@ -143,7 +145,8 @@ body.v-floor .mtabs { background:rgba(10,10,10,.9); border:1px solid #FF00FF; }
 .msince { font-size:16px; font-weight:600; margin-top:2px; }
 .mcandle { height:300px; margin:14px -6px 0; position:relative; }
 @media (min-width: 960px) { .mcandle { height:380px; } }
-.mcsrc { font-size:11px; color:var(--gray2); margin-top:4px; display:flex; justify-content:space-between; }
+.mcsrc { font-size:11px; color:var(--gray2); margin-top:4px; display:flex; justify-content:space-between; gap:8px; white-space:nowrap; }
+.mcsrc > * { overflow:hidden; text-overflow:ellipsis; }
 .mstats { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:16px; }
 .mstat, .mcardx { background:var(--card); border-radius:18px; padding:14px 16px; }
 .mstat .k, .mcardx .k { font-size:12.5px; color:var(--gray); }

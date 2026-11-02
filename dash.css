@@ -123,7 +123,7 @@ th { color:var(--dim); font-weight:normal; }
 
 /* desktop: graph + balance left, terminal right, coin/positions below */
 @media (min-width: 1101px) {
-  body { display:grid; grid-template-columns: minmax(0,1.55fr) minmax(0,1fr); column-gap:10px; align-content:start; }
+  #floor { display:grid; grid-template-columns: minmax(0,1.55fr) minmax(0,1fr); column-gap:10px; align-content:start; }
   .top, .err, .cards { grid-column: 1 / -1; }
   .foot { grid-column: 1 / -1; grid-row: 7; }
   .graphp { grid-column:1; grid-row:4; }

@@ -5,7 +5,7 @@ const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": 
 const POLL = 3000;
 (function () {
   const m = location.hash.match(/^#d=([A-Za-z0-9_-]{32,})/);
-  if (m) { localStorage.setItem("dataPath", m[1]); history.replaceState(null, "", location.pathname); }
+  if (m) { localStorage.setItem("dataPath", m[1]); history.replaceState(null, "", location.pathname + location.search); }
 })();
 const DP = localStorage.getItem("dataPath");
 const RM = matchMedia("(prefers-reduced-motion: reduce)").matches;

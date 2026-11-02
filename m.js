@@ -298,7 +298,7 @@
       const step = t => { const k = dur ? Math.min(1, (t - t0) / dur) : 1, e = 1 - Math.pow(1 - k, 3); line.applyOptions({ price: a0 + (target - a0) * e }); if (k < 1 && A.lines.stop === line) requestAnimationFrame(step); };
       requestAnimationFrame(step); A.stopShown = target;
     }
-    q("#mclegend").innerHTML = `<span style="color:${B}">┈ Executor buy</span> · <span style="color:${O}">┈ ${title}</span>`;
+    q("#mclegend").innerHTML = `<span style="color:${B}">┈ Buy</span> · <span style="color:${O}">┈ ${title}</span>`;
   }
   function liveTick(c) {
     if (!A.series || !c.price || !A.lastCandles) return;
@@ -316,7 +316,7 @@
         const r = await fetch(`https://api.geckoterminal.com/api/v2/networks/solana/pools/${encodeURIComponent(c.pool)}/ohlcv/minute?aggregate=1&limit=180&currency=usd`, { headers: { Accept: "application/json" } });
         if (r.ok) {
           const j = await r.json(), L = (((j || {}).data || {}).attributes || {}).ohlcv_list || [];
-          if (L.length) { bars = L.map(k => ({ time: tt(k[0]), open: +k[1], high: +k[2], low: +k[3], close: +k[4] })).sort((a, b) => a.time - b.time); src = "GeckoTerminal · 1m candles · refresh 20s"; }
+          if (L.length) { bars = L.map(k => ({ time: tt(k[0]), open: +k[1], high: +k[2], low: +k[3], close: +k[4] })).sort((a, b) => a.time - b.time); src = "GeckoTerminal · 1m"; }
         } else src = `GeckoTerminal ${r.status}`;
       } catch (e) { src = "GeckoTerminal unreachable"; }
     }
@@ -383,6 +383,7 @@
     if (A.open) renderCoin(false);
     const w = d.wallet || {};
     q("#mfoot").textContent = `bot wallet ${w.address || "n/a"} · updated ${hm(d.updated_at)} ET · ${Feed.remote ? "public feed · 15s snapshots" : "local feed · 3s"}`;
+    if (A.first) { const cm = new URLSearchParams(location.search).get("coin"); if (cm) openCoin(cm); }
     A.first = false;
   });
   addEventListener("deskerr", e => {
