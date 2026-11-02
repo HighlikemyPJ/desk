@@ -174,3 +174,12 @@ html { background:#000; }
   body.v-app { -webkit-user-select:none; user-select:none; -webkit-tap-highlight-color:transparent; overscroll-behavior-y:none; }
   body.v-floor { padding-top:max(8px, env(safe-area-inset-top)); padding-bottom:calc(70px + env(safe-area-inset-bottom)); }
 }
+
+/* trade-close toast: green or red pill, top center */
+.mtoast { position:fixed; top:max(12px, env(safe-area-inset-top)); left:50%; z-index:60; transform:translate(-50%, -160%); transition:transform .35s cubic-bezier(.2,.9,.3,1.2), opacity .35s;
+  opacity:0; padding:9px 18px; border-radius:999px; font:700 15px/1.2 -apple-system, system-ui, sans-serif; color:#04170c; background:#21d07a;
+  box-shadow:0 8px 28px rgba(0,0,0,.45); white-space:nowrap; pointer-events:none; letter-spacing:.2px; }
+.mtoast.red { background:#ff4d5e; color:#2a0307; }
+.mtoast.show { transform:translate(-50%, 0); opacity:1; }
+.mtoast small { font-weight:600; opacity:.8; margin-left:6px; }
+@media (prefers-reduced-motion: reduce) { .mtoast { transition:opacity .2s; } }

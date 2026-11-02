@@ -359,6 +359,34 @@
     };
     requestAnimationFrame(step);
   }
+  // ---------- trade-close toasts ("$TICKER +X%" pill, top center)
+  A.toasted = new Set(JSON.parse(localStorage.getItem("m_toast") || "[]")); A.tq = []; A.tbusy = false;
+  function toastText(r) {
+    const sym = "$" + String(r.coin || "?").replace(/^\$/, "").toUpperCase();
+    const pct = (r.sub || "").match(/[-+]?\d+(\.\d+)?%/);
+    return { sym, pct: pct ? pct[0] : "", usd: r.usd || 0 };
+  }
+  function nextToast() {
+    if (A.tbusy || !A.tq.length) return;
+    A.tbusy = true;
+    const t = A.tq.shift(), el = q("#mtoast");
+    el.className = "mtoast " + (t.usd >= 0 ? "green" : "red");
+    el.innerHTML = `${h(t.sym)} ${h(t.pct)}<small>${money(t.usd, true)}</small>`;
+    requestAnimationFrame(() => el.classList.add("show"));
+    setTimeout(() => { el.classList.remove("show"); setTimeout(() => { A.tbusy = false; nextToast(); }, 400); }, 3800);
+  }
+  function toasts() {
+    const rows = (A.app.feed || []).filter(r => /^x/.test(r.id) && (r.kind === "sold" || r.kind === "stopped"));
+    rows.slice().reverse().forEach(r => {
+      if (A.toasted.has(r.id)) return;
+      A.toasted.add(r.id);
+      if (!A.first && Date.now() / 1000 - r.ts < 900 && A.tq.length < 5) A.tq.push(toastText(r));
+    });
+    localStorage.setItem("m_toast", JSON.stringify([...A.toasted].slice(-200)));
+    nextToast();
+  }
+  window.deskToastTest = r => { A.tq.push(toastText(r)); nextToast(); };
+
   function celebrate() {
     const a = A.app, d = A.d;
     (a.feed || []).filter(r => r.kind === "sold" && (r.usd || 0) > 0 && !A.cel.has(r.id)).forEach(r => {
@@ -379,7 +407,7 @@
     const d = e.detail; if (!d || !d.app) return;
     A.d = d; A.app = d.app; q("#merr").hidden = true;
     const mm = q("#mmode"); mm.textContent = d.mode + (d.exec ? " · " + String(d.exec).toUpperCase() : ""); mm.className = "mmode" + (d.mode === "LIVE" ? " live" : "");
-    eqData(); hero(); agents(); feed(); coins(); celebrate();
+    eqData(); hero(); agents(); feed(); coins(); toasts(); celebrate();
     if (A.open) renderCoin(false);
     const w = d.wallet || {};
     q("#mfoot").textContent = `bot wallet ${w.address || "n/a"} · updated ${hm(d.updated_at)} ET · ${Feed.remote ? "public feed · 15s snapshots" : "local feed · 3s"}`;
