@@ -72,6 +72,7 @@ th { color:var(--dim); font-weight:normal; }
 .term .t { color:var(--dim); } .term .a { color:var(--c); } .term .good { color:var(--g); } .term .bad { color:var(--r); } .term .warn { color:var(--y); } .term .info { color:#d9b8ff; }
 .term .cur::after { content:"█"; color:var(--g); animation:pulse 1s steps(1) infinite; }
 .term .lnk { color:var(--c); }
+.term .src.mig { color:#7fb4ff; } .term .src.mom { color:#ffb347; }
 .foot { padding:8px 2px 0; font-size:15px; }
 .ph .fname { text-transform:none; color:var(--g); }
 .tfoot { display:flex; align-items:center; gap:8px; padding:5px 8px; border-top:1px solid var(--pinkd); font-size:15px; flex-wrap:wrap; }
