@@ -256,6 +256,8 @@ html { background:#000; }
 
 /* t103 Big Whale Bot */
 .b-whale { background:rgba(79,163,255,.18); color:#4fa3ff; }
+.b-lilwhale { background:rgba(127,212,255,.18); color:#7fd4ff; }
+.b-whalejr { background:rgba(155,140,255,.18); color:#9b8cff; }
 .wcws .cw { background:rgba(79,163,255,.12); color:#4fa3ff; }
 .wcws .cw i { color:#bfdcff; }
 .wrow { display:grid; grid-template-columns:1fr auto auto auto; gap:8px; font-size:12px; align-items:center; margin-top:4px; }

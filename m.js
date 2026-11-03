@@ -19,9 +19,9 @@
   const pc = (v, d = 1) => v == null ? "–" : (v > 0 ? "+" : "") + v.toFixed(d) + "%";
   const knum = v => v == null ? "–" : v >= 1e6 ? (v / 1e6).toFixed(2) + "M" : v >= 1e3 ? (v / 1e3).toFixed(1) + "K" : String(v);
   const age = ts => { if (!ts) return "–"; const s = Math.max(0, Date.now() / 1000 - ts); return s < 60 ? Math.round(s) + "s" : s < 3600 ? Math.round(s / 60) + "m" : s < 172800 ? Math.round(s / 3600) + "h" : Math.round(s / 86400) + "d"; };
-  const SRC = s => ({ momentum: "MOM", bluechip: "BLU", volspike: "VOL", sniper: "SNP", copy: "CPY", whale: "WHL" })[s] || "MIG";
+  const SRC = s => ({ momentum: "MOM", bluechip: "BLU", volspike: "VOL", sniper: "SNP", copy: "CPY", whale: "WHL", lilwhale: "LIL", whalejr: "JR" })[s] || "MIG";
   // one colored badge per bot, used on the P&L-by-bot table and on every trade row (t81)
-  const BOTN = { momentum: "Momentum", migration: "Migration", bluechip: "Bluechip", volspike: "Volspike", sniper: "Sniper", copy: "Copy", whale: "Big Whale", unknown: "Unknown" };
+  const BOTN = { momentum: "Momentum", migration: "Migration", bluechip: "Bluechip", volspike: "Volspike", sniper: "Sniper", copy: "Copy", whale: "Big Whale", lilwhale: "Lil Whale", whalejr: "Whale Jr", unknown: "Unknown" };
   const BOTK = b => BOTN[b] ? b : b ? "migration" : "unknown";
   const BB = (b, full) => { const k = BOTK(b); return `<span class="bb b-${k}">${full ? BOTN[k] : k === "unknown" ? "UNK" : SRC(k)}</span>`; };
   const hm = ts => new Date(ts * 1000).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", timeZone: TZN });
@@ -217,25 +217,29 @@
         `<div class="crole"><b>Risk</b><div class="pills">${(R.rules || []).map(x => `<span class="gr">${h(x)}</span>`).join("")}</div></div>` +
         `</div>`);
     }
-    const wh = a.whale;
+    const WCOL = { whale: "#4FA3FF", lilwhale: "#7FD4FF", whalejr: "#9B8CFF" };
+    for (const wk of ["whale", "lilwhale", "whalejr"]) {   // t107: Big Whale Bot + Lil Whale + Whale Jr, same card
+    const wh = a[wk];
     if (wh) {
+      const wc = WCOL[wk], wpl = wh.pnl ?? 0;
       // t103 Big Whale Bot: whales -> 30s delay -> $20 -> signal exits -> rebuy watch
       const st = !wh.on ? "off" : wh.active ? "watching" : "off in LIVE";
       const wl = (wh.wallets || []).map(w => `<span class="cw">${h(w.handle ? (w.handle[0] === "@" ? w.handle : "@" + w.handle) : w.w)}${w.wr != null ? ` <i>${Math.round(w.wr * 100)}%</i>` : ""}</span>`).join("");
-      const op = (wh.open || []).map(p => `<div class="sm">${BB("whale")} ${h(p.sym || "")} · ${h(p.who || "")}${p.rebuy ? ` · rebuy #${p.rebuy}` : ""} · <span class="${(p.pct ?? 0) >= 0 ? "mgreen" : "mred"}">${pc(p.pct)}</span>${p.trail ? " · trailing" : ""}</div>`).join("");
+      const op = (wh.open || []).map(p => `<div class="sm">${BB(wk)} ${h(p.sym || "")} · ${h(p.who || "")}${p.rebuy ? ` · rebuy #${p.rebuy}` : ""} · <span class="${(p.pct ?? 0) >= 0 ? "mgreen" : "mred"}">${pc(p.pct)}</span>${p.trail ? " · trailing" : ""}</div>`).join("");
       const pend = (wh.pending || []).map(p => `<div class="sm">${h(p.sym || "")} · ${h(p.who)} · buying in ${p.due_in}s</div>`).join("");
       const wt = (wh.watch || []).map(r => `<div class="wrow"><span>${h(r.sym || "")}</span><span class="mgray">entry ${pxHtml(r.entry)}</span><span class="${r.dist == null ? "mgray" : Math.abs(r.dist) <= 3 ? "mgreen" : "mgray"}">${r.dist == null ? "–" : pc(r.dist)}</span><span class="mgray">${r.rebuys}/${r.max}</span></div><div class="sm mgray wnote">${h(r.state)}${r.note ? " · " + h(r.note) : ""}${r.state === "watching" ? ` · ${r.left_min}m left` : ""}</div>`).join("");
       const last = wh.last ? `${wh.last.side === "sell" ? `<span class="mred">sold</span>` : `<span class="mgreen">bought</span>`} ${h(wh.last.sym || "")} · ${h(wh.last.who)} · ${age(wh.last.ts)} ago` : "no whale trades seen yet";
-      card("whale", "w" + JSON.stringify(wh),
-        `<h4>${ICON.whale}Big Whale Bot</h4><div class="big" style="display:flex;align-items:center;gap:8px"><span class="blink ${wh.active ? "" : "off"}" style="${wh.active ? "background:#4FA3FF" : ""}"></span>${st}</div>` +
-        `<div class="sm">${wh.n} whales · ${wh.trades} trade${wh.trades === 1 ? "" : "s"} tonight · ${(wh.open || []).length}/${wh.max_open} open · $${wh.ticket} per buy</div>` +
+      card(wk, "w" + JSON.stringify(wh),
+        `<h4>${ICON.whale.replaceAll("#4FA3FF", wc)}${h(wh.name || "Big Whale Bot")}</h4><div class="big" style="display:flex;align-items:center;gap:8px"><span class="blink ${wh.active ? "" : "off"}" style="${wh.active ? "background:${wc}" : ""}"></span>${st}</div>` +
+        `<div class="sm">${wh.n} whales · ${wh.trades} trade${wh.trades === 1 ? "" : "s"} tonight · ${(wh.open || []).length}/${wh.max_open} open · $${wh.ticket} per buy · P&amp;L <span class="${wpl >= 0 ? "mgreen" : "mred"}">${wpl >= 0 ? "+" : "-"}$${Math.abs(wpl).toFixed(2)}</span> (${wh.closed ?? 0} closed)</div>` +
         (wl ? `<div class="cws wcws">${wl}</div>` : `<div class="empty">no whales pinned</div>`) +
         `<div class="croles wroles">` +
         `<div class="crole"><b>Watcher</b><div class="sm">${last}</div>${pend}</div>` +
-        `<div class="crole"><b>Open</b>${op || `<div class="sm">no whale positions</div>`}</div>` +
+        `<div class="crole"><b>Open</b>${op || `<div class="sm">no ${h(wh.short || "whale")} positions</div>`}</div>` +
         `<div class="crole"><b>Rebuy watch</b>${wt || `<div class="sm">nothing on the watchlist</div>`}</div>` +
         `<div class="crole"><b>Exits</b><div class="pills">${(wh.rules || []).map(x => `<span class="gr">${h(x)}</span>`).join("")}</div></div>` +
         `</div>`);
+    }
     }
   }
   setInterval(() => document.querySelectorAll(".cdown[data-due]").forEach(e => { e.textContent = Math.max(0, Math.round(+e.dataset.due - Date.now() / 1000)) + "s"; }), 1000);
@@ -297,7 +301,7 @@
       const isNew = !A.first && !A.seen.has(r.id);
       const col = r.kind === "bought" ? "" : r.kind === "killed" ? "mgray" : (r.usd || 0) >= 0 ? "mgreen" : "mred";
       const amt = r.kind === "killed" || r.usd == null ? "" : r.kind === "bought" ? money(r.usd) : money(r.usd, true);
-      return `<div class="mrow ${isNew ? "new" : ""}" data-m="${h(r.mint)}">${logo(r.img, r.coin)}<div class="mid"><div class="t1">${r.kind === "killed" ? "" : BB(r.bot) + " "}${h(r.verb || verb[r.kind] || r.kind)} ${h(r.coin)}${(r.bot === "copy" || r.bot === "whale") && r.reason ? ` <span class="mgray">| ${h(r.reason)}</span>` : ""}</div><div class="t2">${h(r.agent)}${(r.bot === "copy" || r.bot === "whale") ? "" : " · " + h(r.reason)} · ${age(r.ts)} ago</div></div><div class="amt ${col}">${amt}<small>${h(r.sub || "")}</small></div></div>`;
+      return `<div class="mrow ${isNew ? "new" : ""}" data-m="${h(r.mint)}">${logo(r.img, r.coin)}<div class="mid"><div class="t1">${r.kind === "killed" ? "" : BB(r.bot) + " "}${h(r.verb || verb[r.kind] || r.kind)} ${h(r.coin)}${(r.bot === "copy" || ["whale", "lilwhale", "whalejr"].includes(r.bot)) && r.reason ? ` <span class="mgray">| ${h(r.reason)}</span>` : ""}</div><div class="t2">${h(r.agent)}${(r.bot === "copy" || ["whale", "lilwhale", "whalejr"].includes(r.bot)) ? "" : " · " + h(r.reason)} · ${age(r.ts)} ago</div></div><div class="amt ${col}">${amt}<small>${h(r.sub || "")}</small></div></div>`;
     }).join("");
     rows.forEach(r => A.seen.add(r.id));
     box.querySelectorAll(".mrow").forEach(el => el.onclick = () => openCoin(el.dataset.m));
@@ -354,7 +358,7 @@
         <div class="mstats" id="mcstats"></div><div class="mcards2" id="mccards"></div>`;
       buildChart();
     }
-    q("#mcmeta").textContent = `Solana · ${age(c.created)} old · found by Scanner/${["momentum", "bluechip", "volspike", "sniper", "copy", "whale"].includes(c.source) ? c.source : "migration"}`;
+    q("#mcmeta").textContent = `Solana · ${age(c.created)} old · found by Scanner/${["momentum", "bluechip", "volspike", "sniper", "copy", "whale", "lilwhale", "whalejr"].includes(c.source) ? c.source : "migration"}`;
     q("#mcprice").innerHTML = pxHtml(c.price);
     q("#mcsince").innerHTML = p ? `<span class="${p.pnl_pct >= 0 ? "mgreen" : "mred"}">${p.pnl_pct >= 0 ? up : down} ${Math.abs(p.pnl_pct).toFixed(2)}%</span> <span class="mgray" style="font-weight:500">since entry</span>`
       : `<span class="${(c.h1 ?? 0) >= 0 ? "mgreen" : "mred"}">${c.h1 == null ? "" : pc(c.h1) + " "}</span><span class="mgray" style="font-weight:500">${c.h1 == null ? "not held" : "1h · not held"}</span>`;
