@@ -253,3 +253,10 @@ html { background:#000; }
 .crole .sm { overflow:hidden; text-overflow:ellipsis; }
 .crole .pills { margin-top:3px; }
 .cdown { color:#2ee6c9; }
+
+/* t103 Big Whale Bot */
+.b-whale { background:rgba(79,163,255,.18); color:#4fa3ff; }
+.wcws .cw { background:rgba(79,163,255,.12); color:#4fa3ff; }
+.wcws .cw i { color:#bfdcff; }
+.wrow { display:grid; grid-template-columns:1fr auto auto auto; gap:8px; font-size:12px; align-items:center; margin-top:4px; }
+.wnote { font-size:11px; margin-top:0; }
