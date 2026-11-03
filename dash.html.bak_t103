@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Desk">
+<meta name="application-name" content="Desk">
+<meta name="theme-color" content="#000000">
+<meta name="format-detection" content="telephone=no">
+<meta name="referrer" content="no-referrer">
+<title>Desk</title>
+<link rel="apple-touch-icon" sizes="180x180" href="icons/dash-180.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/dash-192.png">
+<script>
+/* Home Screen: the data key lives only in the page URL (?d=KEY, or legacy #d=KEY) and this device's storage, never in the repo.
+   iOS home-screen apps get their own storage, so the saved icon must carry the key in its URL:
+   1) keep ?d=KEY in the address bar (moved from #d= or re-added from storage if missing) - iOS keeps query strings;
+   2) on iOS, no manifest at all when a key is present: Add to Home Screen then saves the current URL (with ?d=KEY),
+      and the apple-* meta tags give the full-screen app. (iOS 16.4+ uses a manifest's start_url when one exists.)
+   3) elsewhere, an in-memory manifest whose start_url is the ?d=KEY URL; with no key, the static dash.webmanifest. */
+(function () {
+  var ok = /^[A-Za-z0-9_-]{32,}$/, q = new URLSearchParams(location.search), qk = q.get("d");
+  var hm = location.hash.match(/^#d=([A-Za-z0-9_-]{32,})/), k = (qk && ok.test(qk)) ? qk : (hm ? hm[1] : null);
+  try { if (k) localStorage.setItem("dataPath", k); else k = localStorage.getItem("dataPath"); } catch (e) { }
+  if (k && !ok.test(k)) k = null;
+  window.DESK_KEY = k;
+  var floor = /(^#|&)floor\b/.test(location.hash);
+  window.deskHash = function (f) { return f ? "#floor" : ""; };
+  addEventListener("hashchange", function () { var n = location.hash.match(/^#d=([A-Za-z0-9_-]{32,})/); if (n && n[1] !== k) { var u = new URLSearchParams(location.search); u.set("d", n[1]); location.replace(location.pathname + "?" + u.toString() + (/(^#|&)floor\b/.test(location.hash) ? "#floor" : "")); } });
+  if (k && (qk !== k || hm)) { q.set("d", k); try { history.replaceState(null, "", location.pathname + "?" + q.toString() + window.deskHash(floor)); } catch (e) { } }
+  var ios = /iP(hone|od|ad)/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+  var dir = location.origin + location.pathname.replace(/[^/]*$/, ""), page = location.origin + location.pathname, href = null;
+  if (!k) href = "dash.webmanifest";
+  else if (!ios) {
+    var mf = { id: dir + "dash.html", name: "Desk", short_name: "Desk", start_url: page + "?d=" + k, scope: dir, display: "standalone",
+      orientation: "portrait", background_color: "#000000", theme_color: "#000000",
+      icons: [180, 192, 512].map(function (n) { return { src: dir + "icons/dash-" + n + ".png", sizes: n + "x" + n, type: "image/png" }; }) };
+    try { href = URL.createObjectURL(new Blob([JSON.stringify(mf)], { type: "application/manifest+json" })); } catch (e) { }
+  }
+  window.DESK_MANIFEST = href ? (href === "dash.webmanifest" ? "static" : "blob") : "none";
+  if (href) { var l = document.createElement("link"); l.rel = "manifest"; l.id = "mf"; l.href = href; document.head.appendChild(l); }
+})();
+</script>
+<link rel="stylesheet" href="dash.css">
+<link rel="stylesheet" href="m.css">
+</head>
+<body class="v-app">
+<main id="app" class="mapp">
+  <header class="mtop">
+    <div class="mbrand"><span class="mdot" id="mfeed"></span>Desk <span class="mmode" id="mmode">…</span></div>
+    <div class="mclock" id="mclock">--:-- ET</div>
+  </header>
+  <div class="merr" id="merr" hidden></div>
+  <div class="mgrid">
+    <div class="mcol">
+      <section class="mhero">
+        <div class="mlabel" id="mballabel">Paper equity</div>
+        <div class="mbal" id="mbal">$--</div>
+        <div class="mpnl"><span id="mpnl">&nbsp;</span><span class="mmult" id="mmult" hidden></span></div>
+        <div class="mchart"><canvas id="mcv"></canvas><div class="mmarks" id="mmarks"></div><div class="mempty" id="mchartempty" hidden>No equity history yet</div></div>
+        <div class="mtf" id="mtf"></div>
+      </section>
+      <section class="msec mbosssec">
+        <div class="mhead"><span><span class="bb b-boss">♛ Boss</span> In charge of every bot</span><span id="mbossn"></span></div>
+        <div class="mboss" id="mboss"></div>
+      </section>
+      <section class="msec mbotsec">
+        <div class="mhead"><span>Live P&amp;L by bot</span><span class="mgray" id="mbotsn"></span></div>
+        <div class="mbots" id="mbots"></div>
+      </section>
+      <section class="msec">
+        <div class="mhead"><span>Agents</span><span class="mgreen" id="mrunning"></span></div>
+        <div class="mcar" id="mcar"></div>
+      </section>
+    </div>
+    <div class="mcol">
+      <section class="msec">
+        <div class="mhead"><span>Live coins</span><span class="mgray" id="mcoinsn"></span></div>
+        <div class="mcoins" id="mcoins"></div>
+      </section>
+      <section class="msec">
+        <div class="mhead"><span>Activity</span><span class="mgray" id="mfeedn"></span></div>
+        <div class="mlist" id="mlist"></div>
+      </section>
+      <div class="mfoot" id="mfoot"></div>
+    </div>
+  </div>
+</main>
+<section class="mcoin" id="mcoin" aria-hidden="true">
+  <div class="mcbar"><button class="mback" id="mback">‹ Home</button><a class="mgray mlink" id="mclink" target="_blank" rel="noopener">DexScreener ↗</a></div>
+  <div class="mcbody" id="mcbody"></div>
+</section>
+<div class="msheet" id="msheet"><div class="mgrab"></div><div id="msheetbody"></div></div>
+<canvas id="mconfetti" class="mconfetti"></canvas>
+<div class="mtoast" id="mtoast" role="status" aria-live="polite"></div>
+<nav class="mtabs"><button data-v="app" class="on">Home</button><button data-v="floor">Floor</button></nav>
+<div id="floor">
+<header class="top">
+  <div class="brand"><span class="logo">◆</span> HIGHLIKEMYPJ DESK <span id="mode" class="badge">…</span></div>
+  <div class="meta"><span id="feed" class="feed">connecting</span><a class="home" href="index.html">APP ›</a><span id="clock" class="clock">--:--:-- ET</span></div>
+</header>
+<div id="err" class="err" hidden></div>
+<section class="cards" id="cards"></section>
+<section class="panel graphp">
+  <div class="ph"><span>TRADING FLOOR · live handoffs</span><span id="flowinfo" class="dim"></span></div>
+  <div class="graphwrap"><canvas id="graph"></canvas><div id="bubbles"></div>
+    <div class="ov ticker" id="ticker"></div>
+    <div class="ov fomo" aria-hidden="true">FOMO</div>
+    <div class="ov minichart"><div class="mh" id="minih">COIN</div><canvas id="minic"></canvas></div>
+    <div class="ov uplink" id="uplink"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M5 8 A9 9 0 0 0 16 19 Z"/><path d="M10.5 13.5 L15 9"/><path d="M15 5 A4 4 0 0 1 19 9"/><path d="M15 1.5 A7.5 7.5 0 0 1 22.5 9"/><path d="M8 19 L6 22.5 H13"/></svg><span>UPLINK</span></div>
+  </div>
+</section>
+<section class="panel balp">
+  <div class="ph"><span id="ballabel">BALANCE</span><span id="balsub" class="dim"></span></div>
+  <div class="balwrap"><canvas id="bal"></canvas><div class="bignum" id="bignum">--</div><div class="balnote" id="balnote"></div></div>
+</section>
+<section class="bottom">
+  <div class="panel coinp">
+    <div class="ph"><span id="coinlabel">COIN</span><a id="coinlink" class="dim" target="_blank" rel="noopener"></a></div>
+    <div class="coinwrap" id="coinwrap"></div>
+    <div class="ph sub"><span>OPEN POSITIONS</span><span id="poscount" class="dim"></span></div>
+    <div id="positions"></div>
+  </div>
+  <div class="panel termp">
+    <div class="ph"><span class="fname">terminal.py</span><span class="dim" id="termcount"></span></div>
+    <div class="term" id="term"></div>
+    <div class="tfoot"><div class="tbar"><i id="syncbar"></i></div><span id="synctxt" class="dim">NEXT SYNC</span><span id="tags" class="tags"></span></div>
+  </div>
+</section>
+<footer class="foot dim" id="foot"></footer>
+</div>
+<script src="feed.js"></script>
+<script src="dash.js"></script>
+<script src="vendor/lightweight-charts.js"></script>
+<script src="m.js"></script>
+<script>if ("serviceWorker" in navigator && location.protocol === "https:") navigator.serviceWorker.register("sw.js").catch(function () { });</script>
+</body>
+</html>
