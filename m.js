@@ -19,9 +19,9 @@
   const pc = (v, d = 1) => v == null ? "–" : (v > 0 ? "+" : "") + v.toFixed(d) + "%";
   const knum = v => v == null ? "–" : v >= 1e6 ? (v / 1e6).toFixed(2) + "M" : v >= 1e3 ? (v / 1e3).toFixed(1) + "K" : String(v);
   const age = ts => { if (!ts) return "–"; const s = Math.max(0, Date.now() / 1000 - ts); return s < 60 ? Math.round(s) + "s" : s < 3600 ? Math.round(s / 60) + "m" : s < 172800 ? Math.round(s / 3600) + "h" : Math.round(s / 86400) + "d"; };
-  const SRC = s => ({ momentum: "MOM", bluechip: "BLU", volspike: "VOL", sniper: "SNP", copy: "CPY", whale: "WHL", lilwhale: "LIL", whalejr: "JR" })[s] || "MIG";
+  const SRC = s => ({ momentum: "MOM", bluechip: "BLU", volspike: "VOL", sniper: "SNP", copy: "CPY", whale: "WHL", lilwhale: "LIL", whalejr: "JR", redwhale: "RBIG", redlil: "RLIL", redjr: "RJR" })[s] || "MIG";
   // one colored badge per bot, used on the P&L-by-bot table and on every trade row (t81)
-  const BOTN = { momentum: "Momentum", migration: "Migration", bluechip: "Bluechip", volspike: "Volspike", sniper: "Sniper", copy: "Copy", whale: "Big Whale", lilwhale: "Lil Whale", whalejr: "Whale Jr", unknown: "Unknown" };
+  const BOTN = { momentum: "Momentum", migration: "Migration", bluechip: "Bluechip", volspike: "Volspike", sniper: "Sniper", copy: "Copy", whale: "Big Whale", lilwhale: "Lil Whale", whalejr: "Whale Jr", redwhale: "Red Big", redlil: "Red Lil", redjr: "Red Jr", unknown: "Unknown" };
   const BOTK = b => BOTN[b] ? b : b ? "migration" : "unknown";
   const BB = (b, full) => { const k = BOTK(b); return `<span class="bb b-${k}">${full ? BOTN[k] : k === "unknown" ? "UNK" : SRC(k)}</span>`; };
   const hm = ts => new Date(ts * 1000).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", timeZone: TZN });
@@ -218,8 +218,8 @@
         `<div class="crole"><b>Risk</b><div class="pills">${(R.rules || []).map(x => `<span class="gr">${h(x)}</span>`).join("")}</div></div>` +
         `</div>`);
     }
-    const WCOL = { whale: "#4FA3FF", lilwhale: "#7FD4FF", whalejr: "#9B8CFF" };
-    for (const wk of ["whale", "lilwhale", "whalejr"]) {   // t107: Big Whale Bot + Lil Whale + Whale Jr, same card
+    const WCOL = { whale: "#4FA3FF", lilwhale: "#7FD4FF", whalejr: "#9B8CFF", redwhale: "#FF4D5E", redlil: "#FF6378", redjr: "#DC3C50" };
+    for (const wk of ["whale", "lilwhale", "whalejr", "redwhale", "redlil", "redjr"]) {   // t107/t120 whales + red copies
     const wh = a[wk];
     if (wh) {
       const wc = WCOL[wk], wpl = wh.pnl ?? 0;
@@ -232,7 +232,7 @@
       const last = wh.last ? `${wh.last.side === "sell" ? `<span class="mred">sold</span>` : `<span class="mgreen">bought</span>`} ${h(wh.last.sym || "")} · ${h(wh.last.who)} · ${age(wh.last.ts)} ago` : "no whale trades seen yet";
       card(wk, "w" + JSON.stringify(wh),
         `<h4>${ICON.whale.replaceAll("#4FA3FF", wc)}${h(wh.name || "Big Whale Bot")}</h4><div class="big" style="display:flex;align-items:center;gap:8px"><span class="blink ${wh.active ? "" : "off"}" style="${wh.active ? "background:${wc}" : ""}"></span>${st}</div>` +
-        `<div class="sm">${wh.n} whales · ${wh.trades} trade${wh.trades === 1 ? "" : "s"} tonight · ${(wh.open || []).length}/${wh.max_open} open · $${wh.ticket} per buy · P&amp;L <span class="${wpl >= 0 ? "mgreen" : "mred"}">${wpl >= 0 ? "+" : "-"}$${Math.abs(wpl).toFixed(2)}</span> (${wh.closed ?? 0} closed)</div>` +
+        `<div class="sm">${wk.startsWith("red") ? "mirrors " + h(wh.parent || "whale") : wh.n + " whales"} · ${wh.trades} trade${wh.trades === 1 ? "" : "s"} tonight · ${(wh.open || []).length}/${wh.max_open} open · $${wh.ticket} per buy · P&amp;L <span class="${wpl >= 0 ? "mgreen" : "mred"}">${wpl >= 0 ? "+" : "-"}$${Math.abs(wpl).toFixed(2)}</span> (${wh.closed ?? 0} closed)${wh.skipped_cap ? ` · <span class="mred">skipped cap ${wh.skipped_cap}</span>` : ""}</div>` +
         (wl ? `<div class="cws wcws">${wl}</div>` : `<div class="empty">no whales pinned</div>`) +
         `<div class="croles wroles">` +
         `<div class="crole"><b>Watcher</b><div class="sm">${last}</div>${pend}</div>` +
@@ -283,8 +283,8 @@
       `<div class="c wl"><b><span class="${r.wins ? "mgreen" : "mgray"}">${r.wins}</span><span class="mgray">/</span><span class="${r.losses ? "mred" : "mgray"}">${r.losses}</span></b><small class="mgray">W/L</small></div>`;
     const row = r => `<div class="brow">${BB(r.bot, true)}${cell(r)}</div>` +
       (r.open.length ? `<div class="bopen">${r.open.map(o => `<button class="bchip" data-m="${h(o.mint)}">${h(o.coin)} <span class="${tone(o.pnl_pct)}">${pc(o.pnl_pct)}</span> <span class="${tone(o.pnl_usd)}">${money(o.pnl_usd, true)}</span></button>`).join("")}</div>` : "");
-    // t119: phone P&L is whale-only. Recompute totals so hidden bots never affect this summary.
-    const rows = ["whale", "lilwhale", "whalejr"].map(bot => (B.rows || []).find(r => r.bot === bot)).filter(Boolean);
+    // t120: phone P&L is the 3 whales + 3 red copies. Recompute totals so hidden bots never affect this summary.
+    const rows = ["whale", "lilwhale", "whalejr", "redwhale", "redlil", "redjr"].map(bot => (B.rows || []).find(r => r.bot === bot)).filter(Boolean);
     const t = rows.reduce((t, r) => {
       for (const k of ["open_n", "upnl_usd", "in_usd", "rpnl_usd", "wins", "losses", "closed"]) t[k] += Number(r[k]) || 0;
       return t;
@@ -309,7 +309,7 @@
       const isNew = !A.first && !A.seen.has(r.id);
       const col = r.kind === "bought" ? "" : r.kind === "killed" ? "mgray" : (r.usd || 0) >= 0 ? "mgreen" : "mred";
       const amt = r.kind === "killed" || r.usd == null ? "" : r.kind === "bought" ? money(r.usd) : money(r.usd, true);
-      return `<div class="mrow ${isNew ? "new" : ""}" data-m="${h(r.mint)}">${logo(r.img, r.coin)}<div class="mid"><div class="t1">${r.kind === "killed" ? "" : BB(r.bot) + " "}${h(r.verb || verb[r.kind] || r.kind)} ${h(r.coin)}${(r.bot === "copy" || ["whale", "lilwhale", "whalejr"].includes(r.bot)) && r.reason ? ` <span class="mgray">| ${h(r.reason)}</span>` : ""}</div><div class="t2">${h(r.agent)}${(r.bot === "copy" || ["whale", "lilwhale", "whalejr"].includes(r.bot)) ? "" : " · " + h(r.reason)} · ${age(r.ts)} ago</div></div><div class="amt ${col}">${amt}<small>${h(r.sub || "")}</small></div></div>`;
+      return `<div class="mrow ${isNew ? "new" : ""}" data-m="${h(r.mint)}">${logo(r.img, r.coin)}<div class="mid"><div class="t1">${r.kind === "killed" ? "" : BB(r.bot) + " "}${h(r.verb || verb[r.kind] || r.kind)} ${h(r.coin)}${(r.bot === "copy" || ["whale", "lilwhale", "whalejr", "redwhale", "redlil", "redjr"].includes(r.bot)) && r.reason ? ` <span class="mgray">| ${h(r.reason)}</span>` : ""}</div><div class="t2">${h(r.agent)}${(r.bot === "copy" || ["whale", "lilwhale", "whalejr", "redwhale", "redlil", "redjr"].includes(r.bot)) ? "" : " · " + h(r.reason)} · ${age(r.ts)} ago</div></div><div class="amt ${col}">${amt}<small>${h(r.sub || "")}</small></div></div>`;
     }).join("");
     rows.forEach(r => A.seen.add(r.id));
     box.querySelectorAll(".mrow").forEach(el => el.onclick = () => openCoin(el.dataset.m));

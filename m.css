@@ -258,6 +258,9 @@ html { background:#000; }
 .b-whale { background:rgba(79,163,255,.18); color:#4fa3ff; }
 .b-lilwhale { background:rgba(127,212,255,.18); color:#7fd4ff; }
 .b-whalejr { background:rgba(155,140,255,.18); color:#9b8cff; }
+.b-redwhale { background:rgba(255,77,94,.22); color:#ff4d5e; }
+.b-redlil { background:rgba(255,99,120,.22); color:#ff6378; }
+.b-redjr { background:rgba(220,60,80,.22); color:#dc3c50; }
 .wcws .cw { background:rgba(79,163,255,.12); color:#4fa3ff; }
 .wcws .cw i { color:#bfdcff; }
 .wrow { display:grid; grid-template-columns:1fr auto auto auto; gap:8px; font-size:12px; align-items:center; margin-top:4px; }
