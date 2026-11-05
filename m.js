@@ -163,6 +163,7 @@
   function card(id, sig, html) {
     let el = A.cards[id];
     if (!el) { el = document.createElement("div"); el.className = "mag"; q("#mcar").appendChild(el); A.cards[id] = el; }
+    if (id === "copy") el.style.display = "none"; // t119: hide non-whale strategy card, not its settings
     if (el.dataset.sig === sig) return el;
     el.dataset.sig = sig; el.innerHTML = html;
     if (/class="ring/.test(html)) animRings(el);
@@ -196,7 +197,7 @@
       `<div class="sm">${rk.coins.map(c => `${h(c.coin)} <span class="${c.pnl_pct >= 0 ? "mgreen" : "mred"}">${pc(c.pnl_pct)}</span>`).join(" · ") || "no open positions"}</div>` +
       `<div class="pills"><span class="red">${rk.hard_stop === false ? "floor" : "stop"} -${rk.stop_pct}%</span>${rk.signals ? `<span class="gr">signal exits</span>` : ""}<span class="gr">trail ${rk.trail_pct}%</span></div>`);
     const cp = a.copy;
-    if (false && cp) { // t119: phone dashboard is whale-only; Copy settings unchanged
+    if (cp) {
       // t99: copy desk = Watcher -> Copier (30s delay) -> Executor -> Risk
       const st = !cp.on ? "off" : cp.active ? "watching" : "off in LIVE";
       const ro = cp.roles || {}, W = ro.watcher || {}, C = ro.copier || {}, E = ro.executor || {}, R = ro.risk || {};
