@@ -196,7 +196,7 @@
       `<div class="sm">${rk.coins.map(c => `${h(c.coin)} <span class="${c.pnl_pct >= 0 ? "mgreen" : "mred"}">${pc(c.pnl_pct)}</span>`).join(" · ") || "no open positions"}</div>` +
       `<div class="pills"><span class="red">${rk.hard_stop === false ? "floor" : "stop"} -${rk.stop_pct}%</span>${rk.signals ? `<span class="gr">signal exits</span>` : ""}<span class="gr">trail ${rk.trail_pct}%</span></div>`);
     const cp = a.copy;
-    if (cp) {
+    if (false && cp) { // t119: phone dashboard is whale-only; Copy settings unchanged
       // t99: copy desk = Watcher -> Copier (30s delay) -> Executor -> Risk
       const st = !cp.on ? "off" : cp.active ? "watching" : "off in LIVE";
       const ro = cp.roles || {}, W = ro.watcher || {}, C = ro.copier || {}, E = ro.executor || {}, R = ro.risk || {};
@@ -282,11 +282,18 @@
       `<div class="c wl"><b><span class="${r.wins ? "mgreen" : "mgray"}">${r.wins}</span><span class="mgray">/</span><span class="${r.losses ? "mred" : "mgray"}">${r.losses}</span></b><small class="mgray">W/L</small></div>`;
     const row = r => `<div class="brow">${BB(r.bot, true)}${cell(r)}</div>` +
       (r.open.length ? `<div class="bopen">${r.open.map(o => `<button class="bchip" data-m="${h(o.mint)}">${h(o.coin)} <span class="${tone(o.pnl_pct)}">${pc(o.pnl_pct)}</span> <span class="${tone(o.pnl_usd)}">${money(o.pnl_usd, true)}</span></button>`).join("")}</div>` : "");
-    const t = B.total;
+    // t119: phone P&L is whale-only. Recompute totals so hidden bots never affect this summary.
+    const rows = ["whale", "lilwhale", "whalejr"].map(bot => (B.rows || []).find(r => r.bot === bot)).filter(Boolean);
+    const t = rows.reduce((t, r) => {
+      for (const k of ["open_n", "upnl_usd", "in_usd", "rpnl_usd", "wins", "losses", "closed"]) t[k] += Number(r[k]) || 0;
+      return t;
+    }, {open_n: 0, upnl_usd: 0, in_usd: 0, rpnl_usd: 0, wins: 0, losses: 0, closed: 0});
+    t.upnl_pct = t.in_usd ? 100 * t.upnl_usd / t.in_usd : null;
+    t.net_usd = t.upnl_usd + t.rpnl_usd;
     q("#mbotsn").innerHTML = `<span class="${tone(t.net_usd)}">${money(t.net_usd, true)}</span> net`;
     box.innerHTML = `<div class="bhead"><span>Bot</span><span>Unrealized</span><span>Realized today</span><span>W/L</span></div>` +
-      B.rows.map(row).join("") +
-      `<div class="brow tot"><span class="bb b-total">Total</span>${cell(t)}</div>` +
+      rows.map(row).join("") +
+      `<div class="brow tot"><span class="bb b-total">Whales</span>${cell(t)}</div>` +
       `<div class="bnote">Today = since ${hm(B.since)} ET · live prices on the ${Feed.remote ? "15s" : "3s"} feed</div>`;
     box.querySelectorAll(".bchip").forEach(el => el.onclick = () => openCoin(el.dataset.m));
   }
