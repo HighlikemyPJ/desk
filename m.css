@@ -265,3 +265,18 @@ html { background:#000; }
 .wcws .cw i { color:#bfdcff; }
 .wrow { display:grid; grid-template-columns:1fr auto auto auto; gap:8px; font-size:12px; align-items:center; margin-top:4px; }
 .wnote { font-size:11px; margin-top:0; }
+
+/* t129 theme / narrative trader */
+.b-theme { background:rgba(255,159,10,.2); color:#ff9f0a; }
+.mthemesec .mhead .bb { font-size:11px; line-height:20px; padding:0 8px; margin-right:6px; }
+.tkw { font-size:20px; font-weight:700; }
+.tcount { font-variant-numeric:tabular-nums; font-weight:700; color:#ff9f0a; }
+.tgrid { display:grid; grid-template-columns:repeat(3, 1fr); gap:8px; padding:8px 0; }
+.tgrid div { background:#1c1c1e; border-radius:10px; padding:8px; }
+.tgrid small { display:block; color:var(--gray); font-size:10.5px; }
+.tgrid b { font-size:15px; font-variant-numeric:tabular-nums; }
+.tcand { display:grid; grid-template-columns:1fr auto; gap:2px 8px; padding:7px 0; border-top:1px solid #1f1f21; font-size:12px; cursor:pointer; }
+.tcand .t2 { grid-column:1 / span 2; color:var(--gray); font-size:11px; }
+.tpip { display:inline-block; width:8px; height:8px; border-radius:50%; margin-right:2px; background:#3a3a3c; vertical-align:0; }
+.tpip.ok { background:#00e676; } .tpip.no { background:#ff4d5e; } .tpip.wt { background:#ff9f0a; }
+.tv { font-weight:700; font-size:11px; } .tv.bought { color:#00e676; } .tv.skip { color:#ff4d5e; } .tv.wait, .tv.new { color:#ff9f0a; }

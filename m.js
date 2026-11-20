@@ -19,9 +19,9 @@
   const pc = (v, d = 1) => v == null ? "–" : (v > 0 ? "+" : "") + v.toFixed(d) + "%";
   const knum = v => v == null ? "–" : v >= 1e6 ? (v / 1e6).toFixed(2) + "M" : v >= 1e3 ? (v / 1e3).toFixed(1) + "K" : String(v);
   const age = ts => { if (!ts) return "–"; const s = Math.max(0, Date.now() / 1000 - ts); return s < 60 ? Math.round(s) + "s" : s < 3600 ? Math.round(s / 60) + "m" : s < 172800 ? Math.round(s / 3600) + "h" : Math.round(s / 86400) + "d"; };
-  const SRC = s => ({ momentum: "MOM", bluechip: "BLU", volspike: "VOL", sniper: "SNP", copy: "CPY", whale: "WHL", lilwhale: "LIL", whalejr: "JR", redwhale: "RBIG", redlil: "RLIL", redjr: "RJR" })[s] || "MIG";
+  const SRC = s => ({ momentum: "MOM", bluechip: "BLU", volspike: "VOL", sniper: "SNP", copy: "CPY", whale: "WHL", lilwhale: "LIL", whalejr: "JR", redwhale: "RBIG", redlil: "RLIL", redjr: "RJR", theme: "THM" })[s] || "MIG";
   // one colored badge per bot, used on the P&L-by-bot table and on every trade row (t81)
-  const BOTN = { momentum: "Momentum", migration: "Migration", bluechip: "Bluechip", volspike: "Volspike", sniper: "Sniper", copy: "Copy", whale: "Big Whale", lilwhale: "Lil Whale", whalejr: "Whale Jr", redwhale: "Red Big", redlil: "Red Lil", redjr: "Red Jr", unknown: "Unknown" };
+  const BOTN = { momentum: "Momentum", migration: "Migration", bluechip: "Bluechip", volspike: "Volspike", sniper: "Sniper", copy: "Copy", whale: "Big Whale", lilwhale: "Lil Whale", whalejr: "Whale Jr", redwhale: "Red Big", redlil: "Red Lil", redjr: "Red Jr", theme: "Theme", unknown: "Unknown" };
   const BOTK = b => BOTN[b] ? b : b ? "migration" : "unknown";
   const BB = (b, full) => { const k = BOTK(b); return `<span class="bb b-${k}">${full ? BOTN[k] : k === "unknown" ? "UNK" : SRC(k)}</span>`; };
   const hm = ts => new Date(ts * 1000).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", timeZone: TZN });
@@ -284,7 +284,7 @@
     const row = r => `<div class="brow">${BB(r.bot, true)}${cell(r)}</div>` +
       (r.open.length ? `<div class="bopen">${r.open.map(o => `<button class="bchip" data-m="${h(o.mint)}">${h(o.coin)} <span class="${tone(o.pnl_pct)}">${pc(o.pnl_pct)}</span> <span class="${tone(o.pnl_usd)}">${money(o.pnl_usd, true)}</span></button>`).join("")}</div>` : "");
     // t120: phone P&L is the 3 whales + 3 red copies. Recompute totals so hidden bots never affect this summary.
-    const rows = ["whale", "lilwhale", "whalejr", "redwhale", "redlil", "redjr"].map(bot => (B.rows || []).find(r => r.bot === bot)).filter(Boolean);
+    const rows = ["whale", "lilwhale", "whalejr", "redwhale", "redlil", "redjr", "theme"].map(bot => (B.rows || []).find(r => r.bot === bot)).filter(Boolean);
     const t = rows.reduce((t, r) => {
       for (const k of ["open_n", "upnl_usd", "in_usd", "rpnl_usd", "wins", "losses", "closed"]) t[k] += Number(r[k]) || 0;
       return t;
@@ -294,9 +294,40 @@
     q("#mbotsn").innerHTML = `<span class="${tone(t.net_usd)}">${money(t.net_usd, true)}</span> net`;
     box.innerHTML = `<div class="bhead"><span>Bot</span><span>Unrealized</span><span>Realized today</span><span>W/L</span></div>` +
       rows.map(row).join("") +
-      `<div class="brow tot"><span class="bb b-total">Whales</span>${cell(t)}</div>` +
+      `<div class="brow tot"><span class="bb b-total">All bots</span>${cell(t)}</div>` +
       `<div class="bnote">Today = since ${hm(B.since)} ET · live prices on the ${Feed.remote ? "15s" : "3s"} feed</div>`;
     box.querySelectorAll(".bchip").forEach(el => el.onclick = () => openCoin(el.dataset.m));
+  }
+
+  // ---------- t129 theme / narrative trader
+  const dur = s => { s = Math.max(0, Math.round(s)); const hh = Math.floor(s / 3600), mm = Math.floor(s % 3600 / 60), ss = s % 60; return (hh ? hh + "h " : "") + String(mm).padStart(hh ? 2 : 1, "0") + "m " + String(ss).padStart(2, "0") + "s"; };
+  setInterval(() => document.querySelectorAll(".tdown[data-due]").forEach(e => { e.textContent = dur(+e.dataset.due - Date.now() / 1000); }), 1000);
+  function theme() {
+    const T = A.app.theme, box = q("#mtheme"); if (!box) return;
+    const tone = v => v == null || Math.abs(v) < 0.005 ? "mgray" : v > 0 ? "mgreen" : "mred";
+    if (!T) { box.innerHTML = `<div class="mnone">Theme card appears after the next feed update</div>`; q("#mthemen").innerHTML = ""; return; }
+    const S = T.session, R = T.rules;
+    const rules = `<div class="bnote">$${R.ticket} per coin · max ${R.max_open} open · originals only · skim ${R.skim}% at +${String(R.levels).split(",").join("/+")}% · trail -${R.trail}% after +${R.trail_start}% · floor -${R.floor}% · all out ${R.exit_before}m before the deadline · ${T.mode === "LIVE" ? (T.live ? "LIVE" : "PAPER-only") : "PAPER"} · X ${h(T.x_state)}</div>`;
+    if (!S) { q("#mthemen").innerHTML = `<span class="bst off">Idle</span>`; box.innerHTML = `<div class="mnone">No theme yet. In Telegram: <b>theme gta until 23:30</b></div>` + rules; return; }
+    const live = S.phase === "hunting" || S.phase === "exiting";
+    q("#mthemen").innerHTML = live ? `<span class="bst ok">${S.phase === "exiting" ? "Exiting" : "Hunting"}</span>` : `<span class="bst off">Ended</span>`;
+    const RC = T.recap || {};
+    const head = `<div class="tkw">${h((S.keywords || []).join(", "))}</div>` +
+      (live ? `<div class="mgray">all out at ${hm(S.exit_ts)} ET (deadline ${hm(S.cutoff)}) · <span class="tcount tdown" data-due="${S.exit_ts}">${dur(S.exit_ts - Date.now() / 1000)}</span></div>`
+            : `<div class="mgray">ended ${hm(S.ended)} ET · ${h(S.end_why || "")}</div>`);
+    const grid = `<div class="tgrid"><div><small>Coins seen</small><b>${RC.seen ?? 0}</b><small>${RC.bought ?? 0} bought · ${RC.skipped ?? 0} skipped</small></div>` +
+      `<div><small>Realized</small><b class="${tone(RC.realized)}">${money(RC.realized || 0, true)}</b><small>${RC.wins ?? 0}W / ${RC.losses ?? 0}L</small></div>` +
+      `<div><small>Open P&amp;L</small><b class="${tone(RC.open_pnl)}">${money(RC.open_pnl || 0, true)}</b><small>${(T.positions || []).length} open</small></div></div>`;
+    const X = T.x;
+    const xl = X && X.mentions_1h != null ? `<div class="bnote">X: ${X.mentions_1h}/h · 5m ${X.mentions_5m} · velocity ${X.velocity}${(X.top_tickers || []).length ? " · " + h(X.top_tickers.join(" ")) : ""}</div>` : "";
+    const pos = (T.positions || []).length ? `<div class="bsub">Positions</div><div class="bopen">` + T.positions.map(p => `<button class="bchip" data-m="${h(p.mint)}">${h(p.sym)} <span class="${tone(p.pct)}">${pc(p.pct)}</span> · $${p.left.toFixed(2)} left · ${p.skims} skims${p.banked ? " · banked " + money(p.banked, true) : ""}</button>`).join("") + `</div>` : "";
+    const SN = ["match", "original", "dev", "x", "safety", "buy"];
+    const pips = st => SN.map(n => { const x = (st || []).find(y => y.s === n); return `<span class="tpip ${x ? (x.ok ? "ok" : x.ok === false ? "no" : "wt") : ""}" title="${n}"></span>`; }).join("");
+    const cands = (T.cands || []).slice(0, 14).map(c => `<div class="tcand" data-m="${h(c.mint)}"><div>${pips(c.stages)} <b>${h(c.sym || "?")}</b> <span class="mgray">${h(c.name || "")} · ${age(c.created)} old · ${h(c.src)}${c.dev ? " · dev " + h(c.dev.label) : ""}${c.x && c.x.mentions != null ? " · X " + c.x.mentions : ""}</span></div>` +
+      `<span class="tv ${h(c.verdict)}">${h({ bought: "BOUGHT", skip: "SKIP", wait: "WAIT", new: "QUEUED" }[c.verdict] || c.verdict)}</span><div class="t2">${h(c.stage)} · ${h(c.reason || "")}</div></div>`).join("");
+    box.innerHTML = head + grid + xl + pos + `<div class="bsub">Candidates <span class="mgray">· match → original → dev → X → safety → buy</span></div>` +
+      (cands || `<div class="bnone">No matching launches yet</div>`) + rules;
+    box.querySelectorAll(".bchip,.tcand").forEach(el => el.onclick = () => openCoin(el.dataset.m));
   }
 
   // ---------- activity feed
@@ -516,7 +547,7 @@
     const d = e.detail; if (!d || !d.app) return;
     A.d = d; A.app = d.app; note();
     const mm = q("#mmode"); mm.textContent = d.mode + (d.exec ? " · " + String(d.exec).toUpperCase() : ""); mm.className = "mmode" + (d.mode === "LIVE" ? " live" : "");
-    eqData(); hero(); boss(); bots(); agents(); feed(); coins(); toasts(); celebrate();
+    eqData(); hero(); boss(); bots(); try { theme(); } catch (e) { } agents(); feed(); coins(); toasts(); celebrate();
     if (A.open) renderCoin(false);
     const w = d.wallet || {};
     q("#mfoot").textContent = `bot wallet ${w.address || "n/a"} · updated ${hm(d.updated_at)} ET · ${Feed.remote ? "public feed · 15s snapshots" : "local feed · 3s"}`;
