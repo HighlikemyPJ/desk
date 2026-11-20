@@ -321,11 +321,11 @@
     const X = T.x;
     const xl = X && X.mentions_1h != null ? `<div class="bnote">X: ${X.mentions_1h}/h · 5m ${X.mentions_5m} · velocity ${X.velocity}${(X.top_tickers || []).length ? " · " + h(X.top_tickers.join(" ")) : ""}</div>` : "";
     const pos = (T.positions || []).length ? `<div class="bsub">Positions</div><div class="bopen">` + T.positions.map(p => `<button class="bchip" data-m="${h(p.mint)}">${h(p.sym)} <span class="${tone(p.pct)}">${pc(p.pct)}</span> · $${p.left.toFixed(2)} left · ${p.skims} skims${p.banked ? " · banked " + money(p.banked, true) : ""}</button>`).join("") + `</div>` : "";
-    const SN = ["match", "original", "dev", "x", "safety", "buy"];
+    const SN = ["match", "original", "dev", "x", "safety", "route", "buy"];
     const pips = st => SN.map(n => { const x = (st || []).find(y => y.s === n); return `<span class="tpip ${x ? (x.ok ? "ok" : x.ok === false ? "no" : "wt") : ""}" title="${n}"></span>`; }).join("");
     const cands = (T.cands || []).slice(0, 14).map(c => `<div class="tcand" data-m="${h(c.mint)}"><div>${pips(c.stages)} <b>${h(c.sym || "?")}</b> <span class="mgray">${h(c.name || "")} · ${age(c.created)} old · ${h(c.src)}${c.dev ? " · dev " + h(c.dev.label) : ""}${c.x && c.x.mentions != null ? " · X " + c.x.mentions : ""}</span></div>` +
       `<span class="tv ${h(c.verdict)}">${h({ bought: "BOUGHT", skip: "SKIP", wait: "WAIT", new: "QUEUED" }[c.verdict] || c.verdict)}</span><div class="t2">${h(c.stage)} · ${h(c.reason || "")}</div></div>`).join("");
-    box.innerHTML = head + grid + xl + pos + `<div class="bsub">Candidates <span class="mgray">· match → original → dev → X → safety → buy</span></div>` +
+    box.innerHTML = head + grid + xl + pos + `<div class="bsub">Candidates <span class="mgray">· match → original → dev → X → safety → route → buy</span></div>` +
       (cands || `<div class="bnone">No matching launches yet</div>`) + rules;
     box.querySelectorAll(".bchip,.tcand").forEach(el => el.onclick = () => openCoin(el.dataset.m));
   }
