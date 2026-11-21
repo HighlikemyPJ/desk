@@ -78,12 +78,24 @@
         <td class="${cls(c.total)}">${money(c.total)}</td><td>${c.win_rate == null ? "–" : c.win_rate.toFixed(0) + "%"}</td></tr>`;
     }
     $("brackets").innerHTML = `<div class="scroll"><table><tr><th>Age</th><th>n</th><th>Hybrid</th><th>win</th><th>Control</th><th>win</th></tr>${rows}</table></div>`;
+    const BN = { whale: "Big Whale", lilwhale: "Lil Whale", whalejr: "Whale Jr", copy: "Copy" };
+    if ($("roster") && d.roster) {
+      const rc = d.roster_changes || [], br = d.by_roster || [];
+      const rr = Object.entries(d.roster).map(([b, ws]) => `<div class="tr"><b>${esc(BN[b] || b)}</b> <span class="muted small">${ws.length} traders · reds mirror these</span><div>` +
+        ws.map(w => `<span class="chip">${esc(w.handle)}${w.elig7d != null ? ` · ${w.elig7d} fit/7d` : ""}${w.buys7d != null ? ` · ${w.buys7d} buys` : ""}</span>`).join("") + `</div></div>`).join("");
+      const ch = rc.map(e => `<div class="tr small"><b>Roster change ${e.v}</b> <span class="muted">${esc(et(e.ts))}</span>
+        <div>${(e.added || []).length ? "added: " + esc(e.added.join(", ")) : ""}${(e.dropped || []).length ? " · dropped: " + esc(e.dropped.join(", ")) : ""}</div>
+        ${e.note ? `<div class="muted">${esc(e.note)}</div>` : ""}</div>`).join("");
+      const sp = br.length > 1 ? `<div class="scroll"><table><tr><th>Roster</th><th>From</th><th>n</th><th>Hybrid</th><th>Control</th></tr>` + br.map(x =>
+        `<tr><td>v${x.v}</td><td>${esc(et(x.from_ts))}</td><td>${x.hybrid.n}</td><td class="${cls(x.hybrid.total)}">${money(x.hybrid.total)}</td><td class="${cls(x.control.total)}">${money(x.control.total)}</td></tr>`).join("") + `</table></div>` : "";
+      $("roster").innerHTML = rr + ch + sp + `<div class="muted small" style="margin-top:6px">"fit/7d" = buys in the last 7 days of coins 24h–7d old, the window these bots copy. Handles only.</div>`;
+    }
     $("trades").innerHTML = d.recent.length ? d.recent.map(r => {
       const rungs = r.hybrid.rungs.map(x => `<span class="chip">+${x.lvl}% → sold ${Math.round(x.of * 100)}%</span>`).join("") || `<span class="chip g">no rung yet</span>`;
       const ev = r.control.events.map(x => `<span class="chip c">${esc(x)}</span>`).join("") || `<span class="chip g">no action yet</span>`;
       const link = r.mint ? `https://dexscreener.com/solana/${encodeURIComponent(r.mint)}` : "#";
       return `<div class="tr"><div class="trh"><a href="${link}" target="_blank" rel="noopener">${esc(r.sym || "?")}</a>
-        <span class="muted small">${esc(r.bot)} · ${esc(r.bracket)} (${r.age_h == null ? "age ?" : r.age_h.toFixed(1) + "h"}) · $${r.ticket} · ${esc(et(r.opened_at))}</span></div>
+        <span class="muted small">${esc(r.bot)}${r.who ? " · " + esc(r.who) : ""}${r.roster_v ? " · roster v" + r.roster_v : ""} · ${esc(r.bracket)} (${r.age_h == null ? "age ?" : r.age_h.toFixed(1) + "h"}) · $${r.ticket} · ${esc(et(r.opened_at))}</span></div>
         <div class="arms2"><div><b style="color:var(--hy)">Hybrid</b> <span class="${cls(r.hybrid.pnl)}">${money(r.hybrid.pnl)} (${pct(r.hybrid.pct)})</span>
           <div class="muted small">${r.hybrid.status === "open" ? "open" : "closed · " + esc(r.hybrid.exit)}</div>${rungs}</div>
         <div><b style="color:var(--ct)">Control</b> <span class="${cls(r.control.pnl)}">${money(r.control.pnl)} (${pct(r.control.pct)})</span>
